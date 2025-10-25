@@ -92,15 +92,7 @@ fun HomeScreen(
                 }
             }
             Spacer(Modifier.height(16.dp))
-            Button(
-                onClick = onNavigateToProducts, // Usa la acción que recibe
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF39FF14),
-                    contentColor = Color.Black
-                )
-            ) { Text("Ver Productos", style = MaterialTheme.typography.labelLarge) }
-            Spacer(Modifier.height(24.dp))
+
         }
 
         // Info
