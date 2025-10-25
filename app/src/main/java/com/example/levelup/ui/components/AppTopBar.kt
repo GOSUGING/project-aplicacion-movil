@@ -31,8 +31,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.levelup.ui.theme.Orbitron // <-- 1. IMPORT DE LA FUENTE
 import com.example.levelup.viewmodel.CartViewModel
-import com.example.levelup.viewmodel.TopBarViewModel // Importamos el nuevo ViewModel
+import com.example.levelup.viewmodel.TopBarViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,14 +48,10 @@ fun AppTopBar(
     onTitleClick: () -> Unit,
     backgroundColor: Color = Color.Black,
     contentColor: Color = Color.White,
-    title: String = "Level-Up!"
+    title: String = "Level-Up! Gamer"
 ) {
-    // --- SECCIÓN CORREGIDA ---
-    // 1. Se obtiene la instancia del TopBarViewModel usando hiltViewModel()
     val topBarViewModel: TopBarViewModel = hiltViewModel()
-    // 2. Se observa el estado del usuario desde el nuevo ViewModel
     val currentUser by topBarViewModel.currentUser.collectAsState()
-    //-------------------------
 
     val neon = Color(0xFF39FF14)
     var menuOpen by remember { mutableStateOf(false) }
@@ -76,7 +73,7 @@ fun AppTopBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // --- SECCIÓN DEL MENÚ (la lógica interna ya es correcta) ---
+            // --- SECCIÓN DEL MENÚ ---
             Box {
                 IconButton(onClick = { menuOpen = true }) {
                     Icon(
@@ -118,11 +115,12 @@ fun AppTopBar(
                 }
             }
 
-            // --- TÍTULO ---
+            // --- TÍTULO CON FUENTE ORBITRON ---
             Text(
                 text = title,
                 color = contentColor,
-                fontSize = 22.sp,
+                fontFamily = Orbitron, // <-- 2. FUENTE APLICADA
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .weight(1f)
