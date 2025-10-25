@@ -17,10 +17,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
+// Esta data class está bien, la mantenemos para estructurar los datos.
 data class CategoryUi(val id: String, val name: String)
 
+// --- FIRMA CORREGIDA ---
+// Ahora acepta PaddingValues, que vendrán del GlobalScaffold.
 @Composable
-fun CategoriesScreen(navController: NavController) {
+fun CategoriesScreen(
+    navController: NavController,
+    paddingValues: PaddingValues // <-- 1. Acepta PaddingValues
+) {
     val categories = listOf(
         CategoryUi("consolas", "Consolas"),
         CategoryUi("juegos", "Juegos"),
@@ -29,25 +35,28 @@ fun CategoriesScreen(navController: NavController) {
     )
 
     Column(
+        // 2. APLICA EL PADDING DEL SCAFFOLD AQUÍ
         modifier = Modifier
+            .padding(paddingValues)
             .fillMaxSize()
-            .background(Color.Black)
-            .padding(16.dp),
+            .background(Color.Black),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "Categorías",
             style = MaterialTheme.typography.headlineMedium,
             color = Color(0xFF39FF14),
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(16.dp)
         )
-
-        Spacer(Modifier.height(16.dp))
 
         LazyVerticalGrid(
             columns = GridCells.Adaptive(160.dp),
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(8.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(categories, key = { it.id }) { cat ->
                 Surface(
@@ -55,9 +64,9 @@ fun CategoriesScreen(navController: NavController) {
                     contentColor = Color.White,
                     tonalElevation = 2.dp,
                     shadowElevation = 2.dp,
+                    shape = MaterialTheme.shapes.medium,
                     modifier = Modifier
-                        .padding(8.dp)
-                        .height(100.dp)
+                        .height(120.dp)
                         .fillMaxWidth()
                         .clickable {
                             // Navega a productos filtrando por categoría
@@ -77,13 +86,14 @@ fun CategoriesScreen(navController: NavController) {
                 }
             }
 
-            // “Ver todos los productos”
+            // "Ver todos los productos"
             item {
                 Surface(
-                    color = Color.Transparent,
+                    color = Color(0xFF39FF14), // Un color más llamativo para la acción
+                    contentColor = Color.Black,
+                    shape = MaterialTheme.shapes.medium,
                     modifier = Modifier
-                        .padding(8.dp)
-                        .height(56.dp)
+                        .height(60.dp)
                         .fillMaxWidth()
                         .clickable {
                             // Sin categoría => muestra todo
@@ -95,9 +105,8 @@ fun CategoriesScreen(navController: NavController) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Ver todos los productos",
+                            text = "Ver todos",
                             style = MaterialTheme.typography.titleSmall,
-                            color = Color(0xFF39FF14),
                             fontWeight = FontWeight.SemiBold
                         )
                     }

@@ -58,7 +58,7 @@ class CartViewModel : ViewModel() {
         _cartItems.value = _cartItems.value.filter { it.product.id != productId }
     }
 
-    fun totalPrice(): Long {
+    fun totalPrice(): Double {
         return _cartItems.value.sumOf { it.product.price * it.quantity } // <-- Corrección
     }
 }

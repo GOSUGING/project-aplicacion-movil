@@ -16,12 +16,11 @@
         <!-- API Key de Google Maps -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="TU_API_KEY_GOOGLE_MAPS" />
+            android:value="AIzaSyCHI-q5iRMxzLi5QvEnoOXlqgblaoM1BC0" />
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.LevelUp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
