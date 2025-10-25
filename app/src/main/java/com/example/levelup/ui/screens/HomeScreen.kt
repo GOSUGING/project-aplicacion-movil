@@ -32,7 +32,9 @@ fun HomeScreen(
             AppTopBar(
                 cartViewModel = cartViewModel,
                 onCartClick = onNavigateToCart,
-                onMenuClick = onNavigateToProducts, // ✅ faltaba esto
+                onMenuProducts = onNavigateToProducts,   // ← Productos
+                onMenuCategories = { /* navController.navigate("categories") */ },
+                onMenuLogin = { /* navController.navigate("login") */ },
                 backgroundColor = Color.Black,
                 contentColor = Color.White
             )
