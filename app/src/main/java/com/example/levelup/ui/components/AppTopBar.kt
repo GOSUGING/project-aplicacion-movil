@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -14,6 +15,7 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -28,7 +30,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.levelup.viewmodel.CartViewModel
+import com.example.levelup.viewmodel.TopBarViewModel // Importamos el nuevo ViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,24 +43,31 @@ fun AppTopBar(
     onMenuCategories: () -> Unit,
     onMenuLogin: () -> Unit,
     onMenuRegister: () -> Unit,
+    onMenuProfile: () -> Unit,
     onTitleClick: () -> Unit,
     backgroundColor: Color = Color.Black,
     contentColor: Color = Color.White,
     title: String = "Level-Up!"
 ) {
+    // --- SECCIÓN CORREGIDA ---
+    // 1. Se obtiene la instancia del TopBarViewModel usando hiltViewModel()
+    val topBarViewModel: TopBarViewModel = hiltViewModel()
+    // 2. Se observa el estado del usuario desde el nuevo ViewModel
+    val currentUser by topBarViewModel.currentUser.collectAsState()
+    //-------------------------
+
     val neon = Color(0xFF39FF14)
     var menuOpen by remember { mutableStateOf(false) }
     val cartCount by cartViewModel.cartItemCount.collectAsState()
     val interactionSource = remember { MutableInteractionSource() }
 
-    // Usaremos un Surface y un Row para tener control total y evitar el crash
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp), // Altura estándar de una TopAppBar
+            .height(64.dp),
         color = backgroundColor,
         contentColor = contentColor,
-        shadowElevation = 4.dp // Sombra para darle profundidad
+        shadowElevation = 4.dp
     ) {
         Row(
             modifier = Modifier
@@ -65,7 +76,7 @@ fun AppTopBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // --- SECCIÓN DEL MENÚ (REEMPLAZO DEL navigationIcon) ---
+            // --- SECCIÓN DEL MENÚ (la lógica interna ya es correcta) ---
             Box {
                 IconButton(onClick = { menuOpen = true }) {
                     Icon(
@@ -74,7 +85,6 @@ fun AppTopBar(
                         tint = contentColor
                     )
                 }
-                // El DropdownMenu aquí, anclado al Box, ahora es estable.
                 DropdownMenu(
                     expanded = menuOpen,
                     onDismissRequest = { menuOpen = false },
@@ -88,14 +98,23 @@ fun AppTopBar(
                         text = { Text("Categorías", color = Color.White) },
                         onClick = { menuOpen = false; onMenuCategories() }
                     )
-                    DropdownMenuItem(
-                        text = { RowWithIconText("Iniciar sesión", Icons.Filled.Person) },
-                        onClick = { menuOpen = false; onMenuLogin() }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Registrarse", color = Color.White) },
-                        onClick = { menuOpen = false; onMenuRegister() }
-                    )
+                    HorizontalDivider(color = Color(0x33FFFFFF))
+
+                    if (currentUser == null) {
+                        DropdownMenuItem(
+                            text = { RowWithIconText("Iniciar sesión", Icons.Default.Person) },
+                            onClick = { menuOpen = false; onMenuLogin() }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Registrarse", color = Color.White) },
+                            onClick = { menuOpen = false; onMenuRegister() }
+                        )
+                    } else {
+                        DropdownMenuItem(
+                            text = { RowWithIconText("Mi Perfil", Icons.Default.AccountCircle) },
+                            onClick = { menuOpen = false; onMenuProfile() }
+                        )
+                    }
                 }
             }
 
@@ -106,7 +125,7 @@ fun AppTopBar(
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .weight(1f) // Ocupa el espacio restante
+                    .weight(1f)
                     .padding(horizontal = 12.dp)
                     .clickable(
                         interactionSource = interactionSource,
@@ -115,9 +134,15 @@ fun AppTopBar(
                     )
             )
 
-            // --- ACCIONES (ICONOS DE LA DERECHA) ---
-            IconButton(onClick = onMenuLogin) {
-                Icon(Icons.Filled.Person, contentDescription = "Perfil", tint = contentColor)
+            // --- ACCIONES ---
+            IconButton(onClick = {
+                if (currentUser == null) {
+                    onMenuLogin()
+                } else {
+                    onMenuProfile()
+                }
+            }) {
+                Icon(Icons.Default.Person, contentDescription = "Perfil", tint = contentColor)
             }
             IconButton(onClick = onCartClick) {
                 BadgedBox(

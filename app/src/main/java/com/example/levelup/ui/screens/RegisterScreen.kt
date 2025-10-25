@@ -2,6 +2,7 @@ package com.example.levelup.ui.screens
 
 import android.app.DatePickerDialog
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,19 +15,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel // <-- 1. CAMBIA EL IMPORT
 import com.example.levelup.viewmodel.RegisterViewModel
 import java.util.Calendar
 
 @Composable
 fun RegisterScreen(
-    paddingValues: PaddingValues, // Parámetro añadido para recibir el padding del Scaffold
-    vm: RegisterViewModel = viewModel()
+    paddingValues: PaddingValues,
+    vm: RegisterViewModel = hiltViewModel() // <-- 2. USA hiltViewModel()
 ) {
     val ui by vm.ui.collectAsState()
 
     Column(
-        // Se aplica el padding del Scaffold y se hace la columna scrollable
         modifier = Modifier
             .padding(paddingValues)
             .fillMaxSize()
@@ -72,36 +72,45 @@ fun RegisterScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        // Fecha nacimiento (DatePickerDialog)
-        val ctx = LocalContext.current
-        val cal = remember { Calendar.getInstance() }
-        val dateDialog = remember {
-            DatePickerDialog(
-                ctx,
-                { _, y, m, d ->
-                    val mm = (m + 1).toString().padStart(2, '0')
-                    val dd = d.toString().padStart(2, '0')
-                    vm.onChange("fechaNacimiento", "$y-$mm-$dd")
-                    vm.onBlur("fechaNacimiento")
-                },
-                cal.get(Calendar.YEAR),
-                cal.get(Calendar.MONTH),
-                cal.get(Calendar.DAY_OF_MONTH)
-            ).apply {
-                datePicker.maxDate = System.currentTimeMillis()
-            }
+        // --- SECCIÓN DE FECHA DE NACIMIENTO ---
+        val context = LocalContext.current
+        val maxDateCalendar = Calendar.getInstance().apply {
+            add(Calendar.YEAR, -18)
+        }
+        val datePickerDialog = DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                val monthFormatted = (month + 1).toString().padStart(2, '0')
+                val dayFormatted = dayOfMonth.toString().padStart(2, '0')
+                vm.onChange("fechaNacimiento", "$year-$monthFormatted-$dayFormatted")
+                vm.onBlur("fechaNacimiento")
+            },
+            maxDateCalendar.get(Calendar.YEAR),
+            maxDateCalendar.get(Calendar.MONTH),
+            maxDateCalendar.get(Calendar.DAY_OF_MONTH)
+        ).apply {
+            datePicker.maxDate = maxDateCalendar.timeInMillis
         }
 
-        OutlinedTextField(
-            value = ui.fechaNacimiento,
-            onValueChange = {}, // No se permite el cambio directo
-            readOnly = true,    // Es solo de lectura
-            label = { Text("Fecha de nacimiento (YYYY-MM-DD)") },
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { dateDialog.show() }, // Muestra el diálogo al hacer clic
-            colors = textFieldColors()
-        )
+                .height(56.dp)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    shape = MaterialTheme.shapes.extraSmall
+                )
+                .clickable { datePickerDialog.show() }
+                .padding(horizontal = 16.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(
+                text = if (ui.fechaNacimiento.isBlank()) "Fecha de nacimiento (Debes ser +18)" else ui.fechaNacimiento,
+                color = if (ui.fechaNacimiento.isBlank()) Color(0xFFD3D3D3) else Color.White
+            )
+        }
+        // --- FIN DE LA SECCIÓN DE FECHA ---
 
         Spacer(Modifier.height(8.dp))
 
@@ -151,17 +160,12 @@ private fun textFieldColors() = OutlinedTextFieldDefaults.colors(
     unfocusedTextColor = Color.White,
     disabledTextColor = Color.White.copy(alpha = 0.5f),
     errorTextColor = Color.White,
-
     focusedBorderColor = Color(0xFF39FF14),
     unfocusedBorderColor = Color(0xFF333333),
     errorBorderColor = Color(0xFFFF6B6B),
-
     focusedLabelColor = Color(0xFF39FF14),
     unfocusedLabelColor = Color(0xFFD3D3D3),
-
     cursorColor = Color(0xFF39FF14),
-
-    // Se usa Transparent para que tome el color del fondo de la Column
     focusedContainerColor = Color.Transparent,
     unfocusedContainerColor = Color.Transparent,
     disabledContainerColor = Color.Transparent,

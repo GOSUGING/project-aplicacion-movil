@@ -1,12 +1,14 @@
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.ksp) // Necesario para Room
+    alias(libs.plugins.hilt.gradle.plugin)
+    alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "com.example.levelup"
-    compileSdk = 34 // Usamos una versión estable de SDK
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.levelup"
@@ -28,9 +30,8 @@ android {
         compose = true
     }
 
-    // --- ESTA SECCIÓN ES LA CLAVE ---
-    // Le decimos explícitamente qué versión del compilador de Compose usar
-    // para que coincida con nuestra versión de Kotlin.
+    // --- ESTA ES LA CONFIGURACIÓN ESTABLE ---
+    // Controlamos explícitamente la versión del compilador de Compose.
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
@@ -67,6 +68,11 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
 
+    // Hilt (Inyección de Dependencias)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+
     // Navigation
     implementation(libs.androidx.navigation.compose)
 
@@ -90,4 +96,3 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
-    
