@@ -5,12 +5,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.levelup.ui.screens.CartScreen
-import com.example.levelup.ui.screens.HomeScreen
-import com.example.levelup.ui.screens.ProductsScreen
+import androidx.navigation.navArgument
+import com.example.levelup.ui.components.GlobalScaffold
+import com.example.levelup.ui.screens.*
 import com.example.levelup.ui.theme.LevelUpTheme
 import com.example.levelup.viewmodel.CartViewModel
 
@@ -21,8 +22,6 @@ class MainActivity : ComponentActivity() {
             LevelUpTheme {
                 val navController = rememberNavController()
                 val cartViewModel: CartViewModel = viewModel()
-
-                // Esto está perfecto. La MainActivity solo debe configurar el entorno.
                 AppNavHost(navController = navController, cartViewModel = cartViewModel)
             }
         }
@@ -30,29 +29,65 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavHost(navController: androidx.navigation.NavHostController, cartViewModel: CartViewModel) {
-    // La configuración del NavHost está correcta.
+fun AppNavHost(
+    navController: androidx.navigation.NavHostController,
+    cartViewModel: CartViewModel
+) {
     NavHost(navController = navController, startDestination = "home") {
+
+        // ✅ Pantallas con TopBar global
         composable("home") {
-            HomeScreen(
-                onNavigateToProducts = { navController.navigate("products") },
-                onNavigateToCart = { navController.navigate("cart") }, // <-- AÑADE ESTA LÍNEA
-                cartViewModel = cartViewModel
-            )
+            GlobalScaffold(navController, cartViewModel) {
+                HomeScreen(
+                    onNavigateToProducts = { navController.navigate("products") },
+                    onNavigateToCart = { navController.navigate("cart") },
+                    cartViewModel = cartViewModel
+                )
+            }
         }
+
+        // 🔹 Categorías
+        composable("categories") {
+            GlobalScaffold(navController, cartViewModel) {
+                CategoriesScreen(navController = navController)
+            }
+        }
+
+        // 🔹 Products (sin filtro de categoría)
         composable("products") {
-            // Pásale el navController a la pantalla de productos
-            ProductsScreen(
-                navController = navController,
-                cartViewModel = cartViewModel
-            )
+            GlobalScaffold(navController, cartViewModel) {
+                ProductsScreen(
+                    navController = navController,
+                    cartViewModel = cartViewModel,
+                    initialCategory = null
+                )
+            }
         }
-        composable("cart") {
-            // PASAMOS navController aquí
-            CartScreen(
-                cartViewModel = cartViewModel,
-                navController = navController
+
+        // 🔹 Products con categoría opcional: products?category=juegos
+        composable(
+            route = "products?category={category}",
+            arguments = listOf(
+                navArgument("category") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
             )
+        ) { backStackEntry ->
+            val category = backStackEntry.arguments?.getString("category")
+            GlobalScaffold(navController, cartViewModel) {
+                ProductsScreen(
+                    navController = navController,
+                    cartViewModel = cartViewModel,
+                    initialCategory = category
+                )
+            }
+        }
+
+        // 🚫 Pantalla sin TopBar
+        composable("cart") {
+            CartScreen(cartViewModel = cartViewModel, navController = navController)
         }
     }
 }

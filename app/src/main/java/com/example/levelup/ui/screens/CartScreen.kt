@@ -9,7 +9,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -28,67 +30,60 @@ fun CartScreen(
 ) {
     val items by cartViewModel.cartItems.collectAsState()
     val total = cartViewModel.totalPrice()
+    val nf = remember { NumberFormat.getCurrencyInstance(Locale("es", "CL")) }
 
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
 
-    // estado para animar el FAB (scale)
     var fabPressed by remember { mutableStateOf(false) }
     val fabScale by animateFloatAsState(if (fabPressed) 1.08f else 1f)
 
     Scaffold(
         scaffoldState = scaffoldState,
+        backgroundColor = Color.Black,
         floatingActionButton = {
-            // Extended FAB con animación de scale
             ExtendedFloatingActionButton(
                 icon = { Icon(Icons.Default.Payment, contentDescription = "Pagar") },
                 text = { Text("Pagar") },
                 onClick = {
-                    // animación breve + lógica de pago / snackbar
                     scope.launch {
-                        // animación "pop"
                         fabPressed = true
-                        delay(120) // breve pausa para la animación
+                        delay(120)
                         fabPressed = false
 
-                        // Mostrar snackbar y esperar resultado (ActionPerformed o Dismissed)
                         val result = scaffoldState.snackbarHostState.showSnackbar(
                             message = "Pago realizado con éxito ✅",
                             actionLabel = "Ir a productos",
                             duration = SnackbarDuration.Short
                         )
 
-                        // Si hubo acción o no, navegamos a products (puedes cambiar lógica)
                         if (result == SnackbarResult.ActionPerformed) {
-                            // acción del snackbar pulsada -> ir a products
-                            if (navController != null) {
-                                navController.navigate("products") {
-                                    popUpTo("home") { inclusive = false }
-                                }
-                            } else {
-                                onCheckout?.invoke()
-                            }
+                            navController?.navigate("products") {
+                                popUpTo("home") { inclusive = false }
+                                launchSingleTop = true
+                            } ?: onCheckout?.invoke()
                         } else {
-                            // snackbar dismiss -> también navegamos a products (opcional)
-                            if (navController != null) {
-                                navController.navigate("products") {
-                                    popUpTo("home") { inclusive = false }
-                                }
-                            } else {
-                                onCheckout?.invoke()
-                            }
+                            navController?.navigate("products") {
+                                popUpTo("home") { inclusive = false }
+                                launchSingleTop = true
+                            } ?: onCheckout?.invoke()
                         }
                     }
                 },
-                // Aplicamos la escala animada al modifier
                 modifier = Modifier
                     .padding(end = 16.dp, bottom = 8.dp)
-                    .graphicsLayer(scaleX = fabScale, scaleY = fabScale)
+                    .graphicsLayer(scaleX = fabScale, scaleY = fabScale),
+                backgroundColor = Color(0xFF39FF14),
+                contentColor = Color.Black
             )
         },
         floatingActionButtonPosition = FabPosition.End,
         bottomBar = {
-            Surface(elevation = 8.dp) {
+            Surface(
+                elevation = 8.dp,
+                color = Color.Black,
+                contentColor = Color.White
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -97,20 +92,25 @@ fun CartScreen(
                 ) {
                     IconButton(onClick = {
                         if (navController != null) {
-                            navController.navigate("products") {
-                                popUpTo("home") { inclusive = false }
+                            val popped = navController.popBackStack("home", inclusive = false)
+                            if (!popped) {
+                                navController.navigate("home") { launchSingleTop = true }
                             }
                         } else {
                             onBack?.invoke()
                         }
                     }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Volver a productos")
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Volver al inicio",
+                            tint = Color(0xFF39FF14)
+                        )
                     }
 
-                    val nf = NumberFormat.getCurrencyInstance(Locale("es","CL"))
                     Text(
                         text = "Total: ${nf.format(total)}",
                         style = MaterialTheme.typography.h6,
+                        color = Color.White,
                         modifier = Modifier.padding(end = 8.dp)
                     )
                 }
@@ -123,33 +123,79 @@ fun CartScreen(
                 .fillMaxSize()
         ) {
             items(items) { cartItem ->
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp)
+                val subtotal = cartItem.quantity * cartItem.product.price
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
-                    Text(
-                        cartItem.product.name,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 8.dp)
-                    )
-
-                    Text("x${cartItem.quantity}", modifier = Modifier.padding(end = 8.dp))
-
-                    Button(onClick = { cartViewModel.removeOne(cartItem.product.id) }) {
-                        Text("-")
+                    // Nombre + subtotal
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(cartItem.product.name, color = Color.White)
+                        Text(
+                            nf.format(subtotal),
+                            color = Color(0xFF39FF14)
+                        )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { cartViewModel.removeFromCart(cartItem.product.id) }) {
-                        Text("Eliminar")
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Botones + cantidad + -
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = { cartViewModel.removeOne(cartItem.product.id) },
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color.DarkGray,
+                                contentColor = Color.White
+                            ),
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Text("−")
+                        }
+
+                        Text(
+                            text = "x${cartItem.quantity}",
+                            color = Color.White,
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                        )
+
+                        Button(
+                            onClick = { cartViewModel.addToCart(cartItem.product) },
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color(0xFF39FF14),
+                                contentColor = Color.Black
+                            ),
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Text("+")
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Button(
+                            onClick = { cartViewModel.removeFromCart(cartItem.product.id) },
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = Color(0xFF39FF14),
+                                contentColor = Color.Black
+                            )
+                        ) {
+                            Text("Eliminar")
+                        }
                     }
                 }
-                Divider()
+
+                Divider(color = Color(0x22FFFFFF))
             }
 
-            item {
-                Spacer(modifier = Modifier.height(80.dp)) // espacio para FAB/bottomBar
-            }
+            item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
 }

@@ -6,5 +6,6 @@ data class Product(
     val description: String,
     val price: Long,
     val imageRes: Int? = null,   // resource drawable id (opcional)
-    val imageUrl: String? = null // o URL
+    val imageUrl: String? = null, // o URL
+    val category: String = ""
 )
