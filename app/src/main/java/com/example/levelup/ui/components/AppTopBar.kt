@@ -1,40 +1,61 @@
-// En AppTopBar.kt
 package com.example.levelup.ui.components
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.graphics.Color
 import com.example.levelup.viewmodel.CartViewModel
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.runtime.collectAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppTopBar(
     cartViewModel: CartViewModel,
-    onCartClick: () -> Unit
+    onCartClick: () -> Unit,
+    onMenuClick: () -> Unit, // ⬅️ NUEVO parámetro para el botón hamburguesa
+    backgroundColor: Color,
+    contentColor: Color
 ) {
-    val itemCount = cartViewModel.cartItemCount.collectAsState().value
-
     TopAppBar(
-        title = { Text("Level-Up Gamer") },
+        title = {
+            Text(
+                text = "Level-Up!",
+                color = contentColor
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onMenuClick) { // <-- Al hacer click, redirige a Productos
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Menú",
+                    tint = Color(0xFF39FF14)
+                )
+            }
+        },
         actions = {
-            // Usa un Badge para mostrar la cantidad de ítems
-            BadgedBox(
-                badge = {
-                    if (itemCount > 0) {
-                        Badge { Text("$itemCount") }
+            // Ícono del carrito
+            IconButton(onClick = onCartClick) {
+                Icon(
+                    imageVector = Icons.Default.ShoppingCart,
+                    contentDescription = "Carrito",
+                    tint = Color(0xFF39FF14)
+                )
+                if (cartViewModel.cartItems.collectAsState().value.isNotEmpty()) {
+                    Badge(
+                        containerColor = Color(0xFF39FF14),
+                        contentColor = backgroundColor
+                    ) {
+                        Text(cartViewModel.cartItems.collectAsState().value.size.toString())
                     }
                 }
-            ) {
-                IconButton(onClick = onCartClick) { // <-- 2. USA EL PARÁMETRO AQUÍ
-                    Icon(
-                        imageVector = Icons.Default.ShoppingCart,
-                        contentDescription = "Carrito de compras"
-                    )
-                }
             }
-        }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = backgroundColor,   // Fondo negro
+            titleContentColor = contentColor // Texto blanco
+        ),
+        scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     )
 }

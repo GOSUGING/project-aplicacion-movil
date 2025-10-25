@@ -31,10 +31,13 @@ fun HomeScreen(
         topBar = {
             AppTopBar(
                 cartViewModel = cartViewModel,
-                onCartClick = onNavigateToCart
+                onCartClick = onNavigateToCart,
+                onMenuClick = onNavigateToProducts, // ✅ faltaba esto
+                backgroundColor = Color.Black,
+                contentColor = Color.White
             )
         },
-        containerColor = Color.Black // Fondo negro
+        containerColor = Color.Black
     ) { padding ->
         Column(
             modifier = Modifier
@@ -52,7 +55,6 @@ fun HomeScreen(
                 color = Color.White
             )
 
-            // Carousel principal
             val pagerState = rememberPagerState(pageCount = { 3 })
             HorizontalPager(
                 state = pagerState,
@@ -76,7 +78,6 @@ fun HomeScreen(
                 }
             }
 
-            // Botón Ver Productos verde fluorescente
             Button(
                 onClick = onNavigateToProducts,
                 modifier = Modifier
@@ -97,8 +98,6 @@ fun HomeScreen(
                 modifier = Modifier.padding(top = 12.dp, bottom = 12.dp),
                 color = Color.White
             )
-            // Aquí puedes continuar con tu HorizontalPager para blogs
-            // o el componente de Google Maps si lo agregas
         }
     }
 }
