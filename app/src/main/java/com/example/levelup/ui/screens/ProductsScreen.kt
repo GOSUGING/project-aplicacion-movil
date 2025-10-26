@@ -166,7 +166,7 @@ private fun sampleProducts(): List<Product> {
         Product(13, "Audifonos Marshall Major IV", "Calidad para largas sesiones", 89990.0, imageUrl = null, imageRes = R.drawable.marshall_heardphones, category = "accesorios"),
         Product(14, "Nvidia RTX 3070 TI 8GB", "Potencia y rendimiento", 700000.0, imageUrl = null, imageRes = R.drawable.rtx3070, category = "graficas"),
         Product(15, "Nvidia RTX 2060 6GB", "Potencia y rendimiento", 400000.0, imageUrl = null, imageRes = R.drawable.rtx2060, category = "graficas"),
-        Product(16, "Steam Deck RGB 250GB", "Consola portátil", 299990.0, imageUrl = null, imageRes = R.drawable.SteamDeck, category = "consolas")
+        Product(16, "Steam Deck RGB 250GB", "Consola portátil", 299990.0, imageUrl = null, imageRes = R.drawable.steamDeck, category = "consolas")
 
         // Añade más productos para otras categorías
     )
