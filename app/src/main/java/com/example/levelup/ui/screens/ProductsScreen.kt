@@ -161,7 +161,7 @@ private fun sampleProducts(): List<Product> {
         Product(8, "PC Gamer ASUS ROG", "Potencia y rendimiento", 1299990.0, imageUrl = null, imageRes = R.drawable.rogstrix, category = "consolas"),
         Product(9,"Control XBOX", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.control_xbox, category = "accesorios"),
         Product(10, "Mousepad Razer", "Comodidad para el mouse", 29990.0, imageUrl = null, imageRes = R.drawable.mousepad_razer, category = "accesorios"),
-        Product(11, "Teclado Gamer Razer", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.teclado_razer, category = "accesorios"),
+        Product(11, "Teclado Gamer Razer", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.razer_keyboard, category = "accesorios"),
         // Añade más productos para otras categorías
     )
 }
