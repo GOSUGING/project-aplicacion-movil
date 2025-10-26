@@ -33,9 +33,7 @@ fun CartScreen(
     navController: NavController
 ) {
     val items by cartViewModel.cartItems.collectAsState()
-    val total by remember(items) {
-        derivedStateOf { cartViewModel.totalPrice() }
-    }
+    val total = items.sumOf { it.product.price * it.quantity }
 
     // 1. En Material 3, el estado del Snackbar se maneja con SnackbarHostState
     val snackbarHostState = remember { SnackbarHostState() }
@@ -158,6 +156,18 @@ fun CartScreen(
                             modifier = Modifier.size(40.dp),
                             contentPadding = PaddingValues(0.dp)
                         ) { Text("-") }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Button(
+                            onClick = { cartViewModel.addToCart(cartItem.product) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.DarkGray,
+                                contentColor = Color.White
+                            ),
+                            modifier = Modifier.size(40.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) { Text("+") }
 
                         Spacer(modifier = Modifier.width(8.dp))
 

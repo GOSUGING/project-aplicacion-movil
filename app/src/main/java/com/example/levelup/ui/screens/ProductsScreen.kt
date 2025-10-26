@@ -154,7 +154,20 @@ private fun sampleProducts(): List<Product> {
         Product(1, "Juego de Mesa Catán", "Estrategia y comercio", 29990.0, imageUrl = null, imageRes = R.drawable.catan, category = "juegos"),
         Product(2, "Juego de Mesa Carcassonne", "Colocación de losetas", 24990.0, imageUrl = null, imageRes = R.drawable.carcassonne, category = "juegos"),
         Product(3, "PlayStation 5", "Consola de última generación", 549990.0, imageUrl = null, imageRes = R.drawable.ps5, category = "consolas"),
-        Product(4, "Silla Gamer Ergonómica", "Comodidad para largas sesiones", 149990.0, imageUrl = null, imageRes = R.drawable.silla_gamer, category = "accesorios")
+        Product(4, "Silla Gamer Ergonómica", "Comodidad para largas sesiones", 149990.0, imageUrl = null, imageRes = R.drawable.silla_gamer, category = "accesorios"),
+        Product(5, "Audifonos Gamer HyperX", "Calidad de audio superior", 89990.0, imageUrl = null, imageRes = R.drawable.hyperx_cloud, category = "accesorios"),
+        Product(6, "Mouse Logitech", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.mouse_logitech, category = "accesorios"),
+        Product(7, "Polera y Polerón Level Up", "Estilo y comodidad", 129990.0, imageUrl = null, imageRes = R.drawable.polera_gamer, category = "accesorios"),
+        Product(8, "PC Gamer ASUS ROG", "Potencia y rendimiento", 1299990.0, imageUrl = null, imageRes = R.drawable.rogstrix, category = "consolas"),
+        Product(9, "Control XBOX", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.control_xbox, category = "accesorios"),
+        Product(10, "Mousepad Razer", "Comodidad para el mouse", 29990.0, imageUrl = null, imageRes = R.drawable.mousepad_razer, category = "accesorios"),
+        Product(11, "Teclado Gamer Razer", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.razer_keyboard, category = "accesorios"),
+        Product(12, "Notebook Victus Gamer", "Potencia y rendimiento", 800000.0, imageUrl = null, imageRes = R.drawable.victus, category = "consolas"),
+        Product(13, "Audifonos Marshall Major IV", "Calidad para largas sesiones", 89990.0, imageUrl = null, imageRes = R.drawable.marshall_heardphones, category = "accesorios"),
+        Product(14, "Nvidia RTX 3070 TI 8GB", "Potencia y rendimiento", 700000.0, imageUrl = null, imageRes = R.drawable.rtx3070, category = "graficas"),
+        Product(15, "Nvidia RTX 2060 6GB", "Potencia y rendimiento", 400000.0, imageUrl = null, imageRes = R.drawable.rtx2060, category = "graficas"),
+        Product(16, "Steam Deck RGB 250GB", "Consola portátil", 299990.0, imageUrl = null, imageRes = R.drawable.steamdeck, category = "consolas")
+
         // Añade más productos para otras categorías
     )
 }

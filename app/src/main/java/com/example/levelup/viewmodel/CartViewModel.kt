@@ -20,20 +20,21 @@ class CartViewModel : ViewModel() {
     // Expone la cantidad de ítems como un StateFlow.
     // Se calcula automáticamente cada vez que `_cartItems` cambia.
     val cartItemCount: StateFlow<Int> = _cartItems
-        .map { it.size } // Transforma la lista de ítems en su tamaño (un número)
-        .stateIn(
-            scope = viewModelScope, // El ciclo de vida del cálculo
-            started = SharingStarted.WhileSubscribed(5000), // Empieza cuando hay un suscriptor
-            initialValue = 0 // Valor inicial
-        )
+        .map { it.sumOf { item -> item.quantity } } // Suma la cantidad total de unidades en el carrito
+         .stateIn(
+             scope = viewModelScope, // El ciclo de vida del cálculo
+             started = SharingStarted.WhileSubscribed(5000), // Empieza cuando hay un suscriptor
+             initialValue = 0 // Valor inicial
+         )
     // ------------------------------------
 
     fun addToCart(product: Product) {
         val currentItems = _cartItems.value.toMutableList()
-        val existingItem = currentItems.find { it.product.id == product.id }
+        val existingItemIndex = currentItems.indexOfFirst { it.product.id == product.id }
 
-        if (existingItem != null) {
-            existingItem.quantity++
+        if (existingItemIndex >= 0) {
+            val existingItem = currentItems[existingItemIndex]
+            currentItems[existingItemIndex] = existingItem.copy(quantity = existingItem.quantity + 1)
         } else {
             currentItems.add(CartItem(product = product, quantity = 1))
         }
@@ -42,13 +43,14 @@ class CartViewModel : ViewModel() {
 
     fun removeOne(productId: Int) {
         val currentItems = _cartItems.value.toMutableList()
-        val existingItem = currentItems.find { it.product.id == productId }
+        val existingItemIndex = currentItems.indexOfFirst { it.product.id == productId }
 
-        if (existingItem != null) {
+        if (existingItemIndex >= 0) {
+            val existingItem = currentItems[existingItemIndex]
             if (existingItem.quantity > 1) {
-                existingItem.quantity--
+                currentItems[existingItemIndex] = existingItem.copy(quantity = existingItem.quantity - 1)
             } else {
-                currentItems.removeAll { it.product.id == productId }
+                currentItems.removeAt(existingItemIndex)
             }
         }
         _cartItems.value = currentItems

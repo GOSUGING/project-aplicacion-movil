@@ -32,6 +32,7 @@ fun CategoriesScreen(
         CategoryUi("juegos", "Juegos"),
         CategoryUi("accesorios", "Accesorios"),
         CategoryUi("ropa", "Ropa Gamer"),
+        CategoryUi("graficas", "Tarjetas Graficas"),
     )
 
     Column(
