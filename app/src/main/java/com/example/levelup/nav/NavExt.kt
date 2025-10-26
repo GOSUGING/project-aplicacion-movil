@@ -9,5 +9,7 @@ fun NavController.navigateAndClear(route: String) {
         popUpTo(graph.findStartDestination().id) { inclusive = true }
         launchSingleTop = true
         restoreState = false
+
     }
+
 }
