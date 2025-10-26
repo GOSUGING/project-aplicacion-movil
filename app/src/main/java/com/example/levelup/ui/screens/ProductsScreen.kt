@@ -156,7 +156,8 @@ private fun sampleProducts(): List<Product> {
         Product(3, "PlayStation 5", "Consola de última generación", 549990.0, imageUrl = null, imageRes = R.drawable.ps5, category = "consolas"),
         Product(4, "Silla Gamer Ergonómica", "Comodidad para largas sesiones", 149990.0, imageUrl = null, imageRes = R.drawable.silla_gamer, category = "accesorios"),
         Product(5, "Audifonos Gamer HyperX", "Calidad de audio superior", 89990.0, imageUrl = null, imageRes = R.drawable.hyperx_cloud, category = "accesorios"),
-        Product(6, "Mouse Logitech", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.mouse_logitech, category = "accesorios")
+        Product(6, "Mouse Logitech", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.mouse_logitech, category = "accesorios"),
+        Product(7, "Polera y Polerón Level Up", "Estilo y comodidad", 129990.0, imageUrl = null, imageRes = R.drawable.polera_gamer, category = "accesorios")
         // Añade más productos para otras categorías
     )
 }
