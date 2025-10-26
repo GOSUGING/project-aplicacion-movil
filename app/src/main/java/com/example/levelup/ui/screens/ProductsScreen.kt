@@ -159,11 +159,12 @@ private fun sampleProducts(): List<Product> {
         Product(6, "Mouse Logitech", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.mouse_logitech, category = "accesorios"),
         Product(7, "Polera y Polerón Level Up", "Estilo y comodidad", 129990.0, imageUrl = null, imageRes = R.drawable.polera_gamer, category = "accesorios"),
         Product(8, "PC Gamer ASUS ROG", "Potencia y rendimiento", 1299990.0, imageUrl = null, imageRes = R.drawable.rogstrix, category = "consolas"),
-        Product(9,"Control XBOX", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.control_xbox, category = "accesorios"),
+        Product(9, "Control XBOX", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.control_xbox, category = "accesorios"),
         Product(10, "Mousepad Razer", "Comodidad para el mouse", 29990.0, imageUrl = null, imageRes = R.drawable.mousepad_razer, category = "accesorios"),
         Product(11, "Teclado Gamer Razer", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.razer_keyboard, category = "accesorios"),
         Product(12, "Notebook Victus Gamer", "Potencia y rendimiento", 800000.0, imageUrl = null, imageRes = R.drawable.victus, category = "consolas"),
-        Product(13,"Audifonos Marshall Major IV", "Calidad para largas sesiones", 89990.0, imageUrl = null, imageRes = R.drawable.marshall_heardphones, category = "accesorios"),
+        Product(13, "Audifonos Marshall Major IV", "Calidad para largas sesiones", 89990.0, imageUrl = null, imageRes = R.drawable.marshall_heardphones, category = "accesorios"),
+        Product(14, "Nvidia 3070 TI", "Potencia y rendimiento", 1299990.0, imageUrl = null, imageRes = R.drawable.rtx3070, category = "consolas")
 
         // Añade más productos para otras categorías
     )
