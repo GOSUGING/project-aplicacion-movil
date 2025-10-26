@@ -190,17 +190,22 @@ fun AppNavigation() {
                 },
                 containerColor = Color.Black
             ) { paddingValues ->
-                // --- CORRECCIÓN AQUÍ ---
-                // Se elimina el parámetro `navController` porque RegisterScreen no lo necesita.
                 RegisterScreen(paddingValues = paddingValues)
             }
         }
 
-        // --- Pantalla que NO usa la barra de navegación ---
         composable("cart") {
             CartScreen(
                 cartViewModel = cartViewModel,
                 navController = navController
+            )
+        }
+
+
+        composable("purchase") {
+            PurchaseScreen(
+                navController = navController,
+                cartViewModel = cartViewModel
             )
         }
     }

@@ -1,3 +1,4 @@
+// Archivo: CartScreen.kt
 package com.example.levelup.ui.screens
 
 import androidx.compose.animation.core.animateFloatAsState
@@ -25,8 +26,7 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
-// --- PANTALLA COMPLETAMENTE MIGRAda A MATERIAL 3 ---
-@OptIn(ExperimentalMaterial3Api::class) // Necesario para algunas APIs de Material 3
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
     cartViewModel: CartViewModel,
@@ -37,7 +37,6 @@ fun CartScreen(
         derivedStateOf { cartViewModel.totalPrice() }
     }
 
-    // 1. En Material 3, el estado del Snackbar se maneja con SnackbarHostState
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -47,46 +46,32 @@ fun CartScreen(
     val clLocale = remember { Locale.Builder().setLanguage("es").setRegion("CL").build() }
     val nf = remember { NumberFormat.getCurrencyInstance(clLocale) }
 
-    // 2. Usamos el Scaffold de Material 3
     Scaffold(
         containerColor = Color.Black,
-        // El snackbar se define con un SnackbarHost
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 icon = { Icon(Icons.Default.Payment, contentDescription = "Pagar") },
                 text = { Text("Pagar") },
                 onClick = {
-                    scope.launch {
-                        fabPressed = true
-                        delay(120)
-                        fabPressed = false
 
-                        val result = snackbarHostState.showSnackbar(
-                            message = "Pago realizado con éxito ✅",
-                            actionLabel = "Ir a productos",
-                            duration = SnackbarDuration.Short
-                        )
-
-                        if (result == SnackbarResult.ActionPerformed) {
-                            navController.navigate("products") {
-                                popUpTo("home") { inclusive = false }
-                                launchSingleTop = true
-                            }
+                    if (items.isNotEmpty()) {
+                        navController.navigate("purchase")
+                    } else {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Tu carrito está vacío.")
                         }
                     }
                 },
                 modifier = Modifier
                     .padding(end = 16.dp, bottom = 8.dp)
                     .graphicsLayer(scaleX = fabScale, scaleY = fabScale),
-                // Los colores se definen de forma diferente en Material 3
-                containerColor = Color(0xFF39FF14),
+                containerColor = Color.Gray,
                 contentColor = Color.Black
             )
         },
         floatingActionButtonPosition = FabPosition.End,
         bottomBar = {
-            // 3. Surface y los demás componentes ahora son de Material 3
             Surface(
                 tonalElevation = 8.dp,
                 color = Color.Black,
@@ -103,7 +88,7 @@ fun CartScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
-                            tint = Color(0xFF39FF14)
+                            tint = Color.Black
                         )
                     }
 
@@ -148,7 +133,6 @@ fun CartScreen(
 
                         Text("x${cartItem.quantity}", color = Color.White, modifier = Modifier.padding(end = 12.dp))
 
-                        // 4. Botones de Material 3, con colores actualizados
                         Button(
                             onClick = { cartViewModel.removeOne(cartItem.product.id) },
                             colors = ButtonDefaults.buttonColors(
@@ -164,15 +148,15 @@ fun CartScreen(
                         Button(
                             onClick = { cartViewModel.removeFromCart(cartItem.product.id) },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFB22222), // Un rojo para "eliminar"
-                                contentColor = Color.White
+                                containerColor = Color(0xFFB22222),
+                                contentColor = Color.Black
                             )
                         ) { Text("Quitar") }
                     }
-                    HorizontalDivider(color = Color(0x33FFFFFF)) // Divider de Material 3
+                    HorizontalDivider(color = Color(0x33FFFFFF))
                 }
 
-                item { Spacer(modifier = Modifier.height(96.dp)) } // Espacio extra para el FAB
+                item { Spacer(modifier = Modifier.height(96.dp)) }
             }
         }
     }

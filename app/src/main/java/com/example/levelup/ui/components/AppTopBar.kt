@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.levelup.ui.theme.Orbitron // <-- 1. IMPORT DE LA FUENTE
+import com.example.levelup.ui.theme.Orbitron
 import com.example.levelup.viewmodel.CartViewModel
 import com.example.levelup.viewmodel.TopBarViewModel
 
