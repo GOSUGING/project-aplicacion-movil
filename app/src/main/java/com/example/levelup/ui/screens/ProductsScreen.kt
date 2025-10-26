@@ -154,7 +154,8 @@ private fun sampleProducts(): List<Product> {
         Product(1, "Juego de Mesa Catán", "Estrategia y comercio", 29990.0, imageUrl = null, imageRes = R.drawable.catan, category = "juegos"),
         Product(2, "Juego de Mesa Carcassonne", "Colocación de losetas", 24990.0, imageUrl = null, imageRes = R.drawable.carcassonne, category = "juegos"),
         Product(3, "PlayStation 5", "Consola de última generación", 549990.0, imageUrl = null, imageRes = R.drawable.ps5, category = "consolas"),
-        Product(4, "Silla Gamer Ergonómica", "Comodidad para largas sesiones", 149990.0, imageUrl = null, imageRes = R.drawable.silla_gamer, category = "accesorios")
+        Product(4, "Silla Gamer Ergonómica", "Comodidad para largas sesiones", 149990.0, imageUrl = null, imageRes = R.drawable.silla_gamer, category = "accesorios"),
+        Product(5, "Audifonos Gamer HyperX", "Calidad de audio superior", 89990.0, imageUrl = null, imageRes = R.drawable.hyperx_cloud, category = "accesorios")
         // Añade más productos para otras categorías
     )
 }
