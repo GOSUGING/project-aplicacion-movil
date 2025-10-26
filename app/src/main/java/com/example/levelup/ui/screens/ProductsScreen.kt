@@ -162,6 +162,7 @@ private fun sampleProducts(): List<Product> {
         Product(9,"Control XBOX", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.control_xbox, category = "accesorios"),
         Product(10, "Mousepad Razer", "Comodidad para el mouse", 29990.0, imageUrl = null, imageRes = R.drawable.mousepad_razer, category = "accesorios"),
         Product(11, "Teclado Gamer Razer", "Precisión y respuesta rápida", 69990.0, imageUrl = null, imageRes = R.drawable.razer_keyboard, category = "accesorios"),
+        Product(12, "Notebook Victus Gamer", "Potencia y rendimiento", 800000.0, imageUrl = null, imageRes = R.drawable.victus, category = "consolas")
         // Añade más productos para otras categorías
     )
 }
