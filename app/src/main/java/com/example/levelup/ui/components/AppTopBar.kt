@@ -2,20 +2,18 @@ package com.example.levelup.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+// --- ÍCONOS REQUERIDOS ---
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.* import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.ImageVector // Necesario para RowWithIconText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,6 +22,8 @@ import com.example.levelup.data.session.UserSession
 import com.example.levelup.ui.theme.Orbitron
 import com.example.levelup.viewmodel.CartViewModel
 import com.example.levelup.viewmodel.TopBarViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,20 +36,18 @@ fun AppTopBar(
     onMenuRegister: () -> Unit,
     onMenuProfile: () -> Unit,
     onTitleClick: () -> Unit,
+    // --- PARÁMETROS CONDICIONALES ---
+    onAdminClick: () -> Unit,
+    isAdmin: Boolean,
+    // --------------------------------
     backgroundColor: Color = Color.Black,
     contentColor: Color = Color.White,
     title: String = "Level-Up! Gamer"
 ) {
     val topBarViewModel: TopBarViewModel = hiltViewModel()
-    val currentUser: UserSession? = topBarViewModel.currentUser.collectAsState().value
-
-
-    val cartCount = cartViewModel.cartItemCount.collectAsState().value
-
-
+    val currentUser by topBarViewModel.currentUser.collectAsState()
+    val cartCount by cartViewModel.cartItemCount.collectAsState()
     var menuOpen by remember { mutableStateOf(false) }
-    val ripple = androidx.compose.material3.ripple()
-    val interactionSource = remember { MutableInteractionSource() }
     val neon = Color(0xFF39FF14)
 
     Surface(
@@ -68,7 +66,7 @@ fun AppTopBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // ---- MENU (3 BARRAS) ----
+            // ---- MENU (BOTÓN DE ÍCONO) ----
             Box {
                 IconButton(onClick = { menuOpen = true }) {
                     Icon(
@@ -84,6 +82,7 @@ fun AppTopBar(
                     modifier = Modifier.background(Color(0xFF111111))
                 ) {
 
+                    // Ítems sin Icono
                     DropdownMenuItem(
                         text = { Text("Productos", color = Color.White) },
                         onClick = {
@@ -91,7 +90,6 @@ fun AppTopBar(
                             onMenuProducts()
                         }
                     )
-
                     DropdownMenuItem(
                         text = { Text("Categorías", color = Color.White) },
                         onClick = {
@@ -100,9 +98,10 @@ fun AppTopBar(
                         }
                     )
 
-                    HorizontalDivider(color = Color(0x33FFFFFF))
+                    Divider(color = Color(0x33FFFFFF))
 
                     if (currentUser == null) {
+                        // Login con Icono
                         DropdownMenuItem(
                             text = { RowWithIconText("Iniciar sesión", Icons.Default.Person) },
                             onClick = {
@@ -118,11 +117,24 @@ fun AppTopBar(
                             }
                         )
                     } else {
+                        // Perfil con Icono
                         DropdownMenuItem(
                             text = { RowWithIconText("Mi Perfil", Icons.Default.AccountCircle) },
                             onClick = {
                                 menuOpen = false
                                 onMenuProfile()
+                            }
+                        )
+                    }
+
+                    // --- OPCIÓN DE ADMIN CONDICIONAL ---
+                    if (isAdmin) {
+                        Divider(color = Color(0x33FFFFFF))
+                        DropdownMenuItem(
+                            text = { RowWithIconText("Admin Panel", Icons.Default.Menu, Color.Red) },
+                            onClick = {
+                                menuOpen = false
+                                onAdminClick()
                             }
                         )
                     }
@@ -132,20 +144,26 @@ fun AppTopBar(
             // ---- TÍTULO ----
             Text(
                 text = title,
-                color = Color.White,
-                fontFamily = Orbitron,
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp,
+                // ...
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 12.dp)
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = ripple
-                    ) { onTitleClick() }
+                    .clickable { onTitleClick() }
             )
 
-            // ---- PERFIL ----
+            // --- BOTÓN CONDICIONAL ADMIN PAGE (ÍCONO) ---
+            if (isAdmin) {
+                IconButton(onClick = onAdminClick) {
+                    Icon(
+                        imageVector = Icons.Filled.Menu, // Usamos el icono de menú para representar Admin
+                        contentDescription = "Panel Admin",
+                        tint = Color.Red // Destacar el acceso admin
+                    )
+                }
+            }
+            // ------------------------------------------
+
+            // ---- PERFIL (ICONO) ----
             IconButton(
                 onClick = {
                     if (currentUser == null) onMenuLogin()
@@ -159,7 +177,7 @@ fun AppTopBar(
                 )
             }
 
-            // ---- CARRITO ----
+            // ---- CARRITO (ICONO CON BADGE) ----
             IconButton(onClick = onCartClick) {
                 BadgedBox(
                     badge = {
@@ -182,10 +200,11 @@ fun AppTopBar(
     }
 }
 
+// --- FUNCIÓN AUXILIAR MEJORADA PARA ÍCONOS Y TEXTO ---
 @Composable
-private fun RowWithIconText(text: String, icon: ImageVector) {
+private fun RowWithIconText(text: String, icon: ImageVector, tint: Color = Color(0xFF39FF14)) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, contentDescription = null, tint = Color(0xFF39FF14))
+        Icon(icon, contentDescription = null, tint = tint)
         Spacer(Modifier.width(8.dp))
         Text(text, color = Color.White)
     }

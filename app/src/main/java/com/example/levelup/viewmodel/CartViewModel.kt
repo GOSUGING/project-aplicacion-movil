@@ -2,19 +2,20 @@ package com.example.levelup.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.levelup.data.CartRepository
+import com.example.levelup.data.dto.AddItemRequest
+import com.example.levelup.data.repository.CartRepository
+import com.example.levelup.data.dto.CartResponse
 import com.example.levelup.data.session.SessionManager
 import com.example.levelup.model.CartItem
+import com.example.levelup.model.Product
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class CartUiState(
-    val items: List<CartItem> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null
-)
+// ==========================================================
+//  ESTADO DEL CARRITO
+// ==========================================================
 
 @HiltViewModel
 class CartViewModel @Inject constructor(
@@ -25,11 +26,12 @@ class CartViewModel @Inject constructor(
     private val _ui = MutableStateFlow(CartUiState())
     val ui = _ui.asStateFlow()
 
-    // ---------------------------------------------------------
-    // Cargar carrito del usuario logueado
-    // ---------------------------------------------------------
+    // ==========================================================
+    // CARGAR CARRITO
+    // ==========================================================
     fun loadCart() {
         val user = session.getCurrentUser()
+
         if (user == null) {
             _ui.update { it.copy(error = "Usuario no autenticado") }
             return
@@ -41,8 +43,14 @@ class CartViewModel @Inject constructor(
             val result = repo.getCart(user.id)
 
             result.fold(
-                onSuccess = { items ->
-                    _ui.update { it.copy(items = items, isLoading = false) }
+                onSuccess = { response: CartResponse ->
+                    _ui.update {
+                        it.copy(
+                            items = response.items,
+                            isLoading = false,
+                            error = null
+                        )
+                    }
                 },
                 onFailure = { e ->
                     _ui.update {
@@ -56,41 +64,65 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    // ---------------------------------------------------------
-    // Agregar producto al carrito
-    // ---------------------------------------------------------
-    fun addProduct(productId: Long, qty: Int) {
+    // ==========================================================
+    // AGREGAR PRODUCTO
+    // ==========================================================
+    fun addProduct(product: Product, qty: Int) {
         val user = session.getCurrentUser() ?: return
 
         viewModelScope.launch {
-            try {
-                repo.addToCart(user.id, productId, qty)
-                loadCart()
-            } catch (e: Exception) {
-                _ui.update { it.copy(error = "Error al agregar producto: ${e.message}") }
-            }
+
+            val req = AddItemRequest(
+                productId = product.id,
+                qty = qty,             // ✔ nombre correcto que usa el backend
+                name = product.name,
+                price = product.price,
+                imageUrl = product.imageUrl
+            )
+
+            val result = repo.addToCart(user.id, req)
+
+            result.fold(
+                onSuccess = {
+                    loadCart()          // 🔥 AHORA RECARGA EL CARRITO
+                },
+                onFailure = { e ->
+                    _ui.update { it.copy(error = e.message ?: "Error al agregar producto") }
+                }
+            )
         }
     }
 
-    // ---------------------------------------------------------
-    // Eliminar item del carrito
-    // ---------------------------------------------------------
+    // ==========================================================
+    // ELIMINAR ITEM
+    // ==========================================================
     fun deleteItem(itemId: Long) {
+        val user = session.getCurrentUser()
+
+        if (user == null) {
+            _ui.update { it.copy(error = "❌ Usuario no autenticado para eliminar producto") }
+            return
+        }
+
         viewModelScope.launch {
-            try {
-                repo.deleteItem(itemId)
-                loadCart()
-            } catch (e: Exception) {
-                _ui.update { it.copy(error = "Error eliminando: ${e.message}") }
-            }
+            val result = repo.deleteItem(user.id, itemId)
+
+            result.fold(
+                onSuccess = {
+                    loadCart()
+                },
+                onFailure = { e ->
+                    _ui.update { it.copy(error = e.message ?: "Error al eliminar producto") }
+                }
+            )
         }
     }
 
-    // ---------------------------------------------------------
-    // Contador del carrito (top bar)
-    // ---------------------------------------------------------
+    // ==========================================================
+    // CONTADOR DEL CARRITO
+    // ==========================================================
     val cartItemCount = ui
-        .map { state -> state.items.sumOf { it.quantity } }
+        .map { state -> state.items.sumOf { it.qty } }  // 🔥 CAMBIADO quantity → qty
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),

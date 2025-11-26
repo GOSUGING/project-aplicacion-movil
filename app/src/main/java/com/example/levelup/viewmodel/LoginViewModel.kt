@@ -23,7 +23,7 @@ data class LoginUiState(
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val repo: UserRepository,
-    private val sessionManager: SessionManager   // ← CORREGIDO
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _ui = MutableStateFlow(LoginUiState())
@@ -32,8 +32,8 @@ class LoginViewModel @Inject constructor(
     fun onChange(field: String, value: String) {
         _ui.update {
             when (field) {
-                "email" -> it.copy(email = value)
-                "password" -> it.copy(password = value)
+                "email" -> it.copy(email = value, error = null) // Limpiamos el error al escribir
+                "password" -> it.copy(password = value, error = null)
                 else -> it
             }
         }
@@ -43,9 +43,16 @@ class LoginViewModel @Inject constructor(
         return sessionManager.getCurrentUser()?.role ?: ""
     }
 
-    fun login(onNavigate: (String) -> Unit) {
+    /**
+     * Intenta iniciar sesión. Si tiene éxito, guarda la sesión y llama
+     * a la callback 'onNavigate' con la ruta determinada por el rol.
+     *
+     * @param onNavigate Callback que recibe la ruta (String) a la que se debe navegar ("admin" o "profile").
+     */
+    fun login(onNavigate: (route: String) -> Unit) {
         val state = _ui.value
 
+        // 1. Validación local
         if (state.email.isBlank() || state.password.isBlank()) {
             _ui.update { it.copy(error = "Completa todos los campos") }
             return
@@ -54,30 +61,43 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _ui.update { it.copy(isLoading = true, error = null) }
 
+            // 2. Intento de autenticación (se asume que repo.login devuelve Result<LoginResponse>)
             val result = repo.login(state.email, state.password)
 
             result.fold(
+                // 3. Éxito: Guardar sesión y determinar ruta
                 onSuccess = { res ->
 
                     val session = UserSession(
                         id = res.id ?: -1,
-                        name = res.name ?: "",
-                        email = res.email ?: "",
-                        role = res.role ?: ""
+                        name = res.name ?: "Usuario",
+                        email = res.email ?: state.email,
+                        role = res.role ?: "USER" // Valor por defecto seguro
                     )
 
                     sessionManager.setCurrentUser(session)
 
-                    _ui.update { it.copy(isLoading = false) }
+                    _ui.update { it.copy(isLoading = false, password = "") } // Limpiamos password
 
-                    if (session.role.equals("ADMIN", ignoreCase = true)) {
-                        onNavigate("admin")
+                    // Determinamos la ruta de navegación:
+                    val route = if (session.role.equals("ADMIN", ignoreCase = true)) {
+                        "admin" // Redirige al panel de administración
                     } else {
-                        onNavigate("profile")
+                        "profile" // Redirige al perfil estándar
                     }
+
+                    // Llamamos a la callback con la ruta correcta
+                    onNavigate(route)
                 },
-                onFailure = {
-                    _ui.update { it.copy(error = "Credenciales inválidas", isLoading = false) }
+
+                // 4. Fallo: Mostrar error
+                onFailure = { error ->
+                    _ui.update {
+                        it.copy(
+                            error = "Credenciales inválidas o error de conexión: ${error.message}",
+                            isLoading = false
+                        )
+                    }
                 }
             )
         }

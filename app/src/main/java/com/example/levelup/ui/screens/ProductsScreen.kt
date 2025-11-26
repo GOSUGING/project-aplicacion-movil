@@ -29,12 +29,10 @@ fun ProductsScreen(
     val cartVM: CartViewModel = hiltViewModel()
     val ui = vm.ui.collectAsState()
 
-    // Carga productos desde el backend
     LaunchedEffect(Unit) {
         vm.loadProducts()
     }
 
-    // Filtrar productos
     val products = ui.value.products
     val productsToShow = remember(category, products) {
         if (category.isNullOrBlank()) products
@@ -50,7 +48,6 @@ fun ProductsScreen(
             .background(Color.Black),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Título
         Text(
             text = title,
             style = MaterialTheme.typography.headlineMedium,
@@ -85,10 +82,9 @@ fun ProductsScreen(
                         ProductCard(
                             product = product,
                             onAddToCart = {
-                                cartVM.addProduct(product.id, 1)
+                                cartVM.addProduct(product, 1)   // 🔥 ENVÍA PRODUCTO COMPLETO
                             },
                             onClick = {
-                                // Ejemplo para navegar al detalle si quisieras
                                 // navController.navigate("productDetail/${product.id}")
                             }
                         )
@@ -108,18 +104,19 @@ fun ProductCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .padding(6.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A))
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
 
-            // Imagen desde backend
+            // 🔥 Solo IMAGEN clickeable para NO bloquear el botón
             AsyncImage(
                 model = product.imageUrl,
                 contentDescription = product.name,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp)
+                    .clickable { onClick() }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -127,8 +124,13 @@ fun ProductCard(
             Text(product.name, color = Color.White)
             Text("$${product.price}", color = Color.Cyan)
 
+            Spacer(modifier = Modifier.height(8.dp))
+
             Button(
-                onClick = onAddToCart,
+                onClick = {
+                    println("🔥 BOTÓN AGREGAR FUNCIONA")
+                    onAddToCart()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp),

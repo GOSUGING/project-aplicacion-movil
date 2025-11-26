@@ -3,8 +3,13 @@ package com.example.levelup
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState // Importación necesaria
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
@@ -15,6 +20,7 @@ import androidx.navigation.navArgument
 import com.example.levelup.ui.components.AppTopBar
 import com.example.levelup.ui.screens.*
 import com.example.levelup.viewmodel.CartViewModel
+import com.example.levelup.viewmodel.TopBarViewModel // Importación del ViewModel de la barra superior
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -22,8 +28,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // LevelUpTheme se debería definir aquí si tienes personalización de tema
+            // Se asume que LevelUpTheme está definido y se usa aquí
+            // LevelUpTheme {
             AppNavigation()
+            // }
         }
     }
 }
@@ -32,8 +40,15 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    // Obtenemos el CartViewModel aquí para que la AppTopBar siempre tenga el contador actualizado
+    // Obtenemos los ViewModels necesarios para la barra superior
     val cartViewModel: CartViewModel = hiltViewModel()
+    val topBarViewModel: TopBarViewModel = hiltViewModel() // Nuevo ViewModel
+
+    // Observamos el usuario actual
+    val currentUser by topBarViewModel.currentUser.collectAsState()
+
+    // Lógica para determinar si el usuario es administrador
+    val isAdmin = currentUser?.role?.equals("ADMIN", ignoreCase = true) ?: false
 
     NavHost(
         navController = navController,
@@ -43,6 +58,7 @@ fun AppNavigation() {
         // --- PANTALLAS PRINCIPALES CON LA BARRA DE NAVEGACIÓN ---
 
         val screensWithTopBar = listOf("home", "categories", "products", "profile", "login", "register", "admin")
+
         screensWithTopBar.forEach { screen ->
             composable(
                 route = if (screen == "products") "products?category={category}" else screen,
@@ -51,7 +67,11 @@ fun AppNavigation() {
                     nullable = true
                 }) else emptyList()
             ) { backStackEntry ->
+
                 Scaffold(
+                    // CORRECCIÓN CLAVE: Aplica padding para empujar el contenido debajo de la barra de estado
+                    modifier = Modifier.statusBarsPadding(),
+
                     topBar = {
                         AppTopBar(
                             cartViewModel = cartViewModel,
@@ -61,7 +81,12 @@ fun AppNavigation() {
                             onMenuLogin = { navController.navigate("login") },
                             onMenuRegister = { navController.navigate("register") },
                             onMenuProfile = { navController.navigate("profile") },
-                            onTitleClick = { navController.navigate("home") }
+                            onTitleClick = { navController.navigate("home") },
+
+                            // --- PARÁMETROS NUEVOS AÑADIDOS ---
+                            onAdminClick = { navController.navigate("admin") }, // La acción de navegación
+                            isAdmin = isAdmin // El estado booleano observado
+                            // ------------------------------------
                         )
                     },
                     containerColor = Color.Black
@@ -91,16 +116,10 @@ fun AppNavigation() {
                         "login" -> LoginScreen(
                             paddingValues = padding,
                             navController = navController,
-                            onLoginSuccess = {
-                                // Lógica simplificada: siempre navega al perfil después del login
-                                navController.navigate("profile") {
-                                    popUpTo("home") { inclusive = false }
-                                }
-                            }
                         )
                         "register" -> RegisterScreen(
                             paddingValues = padding,
-                            navController = navController // Se pasa por si se necesita navegar al login post-registro
+                            navController = navController
                         )
                         "admin" -> AdminScreen(navController = navController)
                     }
@@ -111,9 +130,6 @@ fun AppNavigation() {
         // --- PANTALLAS CON DISEÑO PROPIO (SIN LA BARRA DE NAVEGACIÓN PRINCIPAL) ---
 
         composable("cart") {
-            // --- LLAMADA CORREGIDA ---
-            // CartScreen obtiene sus dependencias internamente con Hilt.
-            // Solo le pasamos las acciones de navegación que necesita.
             CartScreen(
                 navController = navController,
                 onCheckout = { navController.navigate("purchase") }

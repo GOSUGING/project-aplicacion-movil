@@ -1,42 +1,77 @@
-package com.example.levelup.data
+package com.example.levelup.data.repository
 
 import com.example.levelup.data.network.CartApi
-import com.example.levelup.model.CartItem
+import com.example.levelup.data.dto.CartResponse
+import com.example.levelup.data.dto.AddItemRequest
+import com.example.levelup.data.dto.UpdateQuantityRequest
+import com.example.levelup.data.dto.ReplaceCartRequest
 import javax.inject.Inject
 
-
+/**
+ * Repositorio para manejar las operaciones del carrito.
+ * Conecta el ViewModel con la API de red (Retrofit).
+ */
 class CartRepository @Inject constructor(
-    private val api: CartApi
+    private val cartApi: CartApi
 ) {
 
-    suspend fun getCart(userId: Long): Result<List<CartItem>> {
-        return try {
-            Result.success(api.getCart(userId))
-        } catch (e: Exception) {
-            Result.failure(e)
+    // -----------------------------------------------------------------
+    // 1. OBTENER / CREAR CARRITO (GET)
+    // Usado por CartViewModel.loadCart()
+    // -----------------------------------------------------------------
+    suspend fun getCart(userId: Long): Result<CartResponse> {
+        // Usa runCatching para manejar excepciones de red/HTTP de forma segura
+        return runCatching {
+            cartApi.getCart(userId)
         }
     }
 
-    suspend fun addToCart(userId: Long, productId: Long, qty: Int): Result<Unit> {
-        return try {
-            val body = mapOf(
-                "userId" to userId,
-                "productId" to productId,
-                "quantity" to qty
-            )
-            api.addToCart(body)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    // -----------------------------------------------------------------
+    // 2. AGREGAR ÍTEM (POST)
+    // Usado por CartViewModel.addProduct()
+    // -----------------------------------------------------------------
+    suspend fun addToCart(userId: Long, req: AddItemRequest): Result<CartResponse> {
+        return runCatching {
+            cartApi.addItem(userId, req)
         }
     }
 
-    suspend fun deleteItem(itemId: Long): Result<Unit> {
-        return try {
-            api.deleteItem(itemId)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    // -----------------------------------------------------------------
+    // 3. ACTUALIZAR CANTIDAD (PATCH)
+    // -----------------------------------------------------------------
+    suspend fun updateItemQuantity(userId: Long, itemId: Long, newQuantity: Int): Result<CartResponse> {
+        return runCatching {
+            val request = UpdateQuantityRequest(newQuantity)
+            cartApi.updateQuantity(userId, itemId, request)
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // 4. ELIMINAR ÍTEM (DELETE)
+    // Usado por CartViewModel.deleteItem()
+    // -----------------------------------------------------------------
+    suspend fun deleteItem(userId: Long, itemId: Long): Result<CartResponse> {
+        return runCatching {
+            cartApi.removeItem(userId, itemId)
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // 5. LIMPIAR CARRITO COMPLETO (DELETE)
+    // -----------------------------------------------------------------
+    suspend fun clearCart(userId: Long): Result<CartResponse> {
+        return runCatching {
+            cartApi.clearCart(userId)
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // 6. REEMPLAZAR CARRITO (PUT)
+    // -----------------------------------------------------------------
+    suspend fun replaceCart(userId: Long, items: List<AddItemRequest>): Result<CartResponse> {
+        return runCatching {
+            val request = ReplaceCartRequest(items)
+            cartApi.replaceCart(userId, request)
         }
     }
 }

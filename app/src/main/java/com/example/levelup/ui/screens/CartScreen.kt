@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,7 +20,7 @@ import com.example.levelup.viewmodel.CartViewModel
 
 @Composable
 fun CartScreen(
-    onCheckout: () -> Unit = {}, // Navegar a PurchaseScreen
+    onCheckout: () -> Unit = {},
     navController: NavHostController
 ) {
     val vm: CartViewModel = hiltViewModel()
@@ -34,18 +36,41 @@ fun CartScreen(
             .background(Color(0xFF0D0D0D))
             .padding(16.dp)
     ) {
+
         Text(
             text = "Carrito",
             style = MaterialTheme.typography.headlineMedium,
             color = Color.White
         )
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(
+            onClick = { navController.navigate("home") },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF00BCD4),
+                contentColor = Color.Black
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
+                contentDescription = "Volver",
+                tint = Color.Black
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Volver al menú principal")
+        }
+
         Spacer(modifier = Modifier.height(12.dp))
 
         when {
             ui.value.isLoading -> LoadingCart()
+
             ui.value.error != null -> ErrorCart(ui.value.error!!)
+
             ui.value.items.isEmpty() -> EmptyCart()
+
             else -> CartListContent(
                 items = ui.value.items,
                 onDelete = { vm.deleteItem(it) },
@@ -91,7 +116,7 @@ fun CartListContent(
     onDelete: (Long) -> Unit,
     onCheckout: () -> Unit
 ) {
-    val subtotal = items.sumOf { it.price * it.quantity }
+    val subtotal = items.sumOf { it.price * it.qty }
 
     Column {
         LazyColumn(
@@ -108,7 +133,6 @@ fun CartListContent(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Total + Botón
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -148,7 +172,7 @@ fun CartItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = item.img,
+                model = item.imageUrl,
                 contentDescription = item.name,
                 modifier = Modifier
                     .size(70.dp)
@@ -156,20 +180,9 @@ fun CartItemCard(
             )
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.name,
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = "Cantidad: ${item.quantity}",
-                    color = Color.Gray
-                )
-                Text(
-                    text = "$${item.price}",
-                    color = Color.Cyan,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text(item.name, color = Color.White)
+                Text("Cantidad: ${item.qty}", color = Color.Gray)
+                Text("$${item.price}", color = Color.Cyan)
             }
 
             Button(

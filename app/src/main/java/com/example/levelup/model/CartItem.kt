@@ -4,10 +4,9 @@ package com.example.levelup.model
 
 data class CartItem(
     val id: Long,
-    val userId: Long,
     val productId: Long,
-    val quantity: Int,
     val name: String,
     val price: Int,
-    val img: String
+    val qty: Int,               // ✔ ESTE CAMPO DEBE LLAMARSE IGUAL QUE EL BACKEND
+    val imageUrl: String
 )

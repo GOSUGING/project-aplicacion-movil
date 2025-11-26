@@ -63,6 +63,11 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation(libs.gms.play.services.maps)
     implementation(libs.androidx.compose.ui.text)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.ads.mobile.sdk)
+    implementation(libs.material)
+    implementation("androidx.compose.material:material-icons-extended:1.6.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
     // Compose Tooling Debug
     debugImplementation("androidx.compose.ui:ui-tooling")

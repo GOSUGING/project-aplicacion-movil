@@ -66,6 +66,7 @@ retrofit = "com.squareup.retrofit2:retrofit:2.9.0"
 retrofit-converter-gson = "com.squareup.retrofit2:converter-gson:2.9.0"
 # Coil (Carga de Imágenes)
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
 # Google Maps
 maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }

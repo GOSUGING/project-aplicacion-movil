@@ -16,7 +16,7 @@ import com.example.levelup.viewmodel.PaymentViewModel
 
 @Composable
 fun PurchaseScreen(
-    onPurchaseSuccess: () -> Unit = {} // Navegar a PurchaseResultScreen
+    onPurchaseSuccess: () -> Unit = {}
 ) {
     val cartVM: CartViewModel = hiltViewModel()
     val couponVM: CouponsViewModel = hiltViewModel()
@@ -28,17 +28,21 @@ fun PurchaseScreen(
 
     var couponCode by remember { mutableStateOf("") }
 
-    // Cargar carrito cuando se abre
-    LaunchedEffect(Unit) {
-        cartVM.loadCart()
-    }
+    // Cargar carrito
+    LaunchedEffect(Unit) { cartVM.loadCart() }
 
-    // Calcular subtotal
-    val subtotal = cartUi.value.items.sumOf { it.price * it.quantity }
+    val cartItems = cartUi.value.items
 
-    // Calcular descuento si existe cupón válido
-    val discount = couponUi.value.coupon?.discount ?: 0
-    val total = subtotal - (subtotal * discount / 100)
+    // --- SUBTOTAL (CORREGIDO) ---
+    val subtotal = cartItems.sumOf { item ->
+        item.price.toBigDecimal().multiply(item.qty.toBigDecimal())
+    }.toInt()
+
+    // DESCUENTO % (si existe cupón)
+    val discountPercent = couponUi.value.coupon?.discount ?: 0
+    val discountValue = (subtotal * discountPercent) / 100
+
+    val total = subtotal - discountValue
 
     Column(
         modifier = Modifier
@@ -55,10 +59,8 @@ fun PurchaseScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // SUBTOTAL
         SummaryRow("Subtotal", subtotal)
 
-        // CUPÓN
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(
@@ -76,7 +78,6 @@ fun PurchaseScreen(
             )
         )
 
-
         Button(
             onClick = { couponVM.fetchCoupon(couponCode) },
             modifier = Modifier
@@ -87,22 +88,16 @@ fun PurchaseScreen(
             Text("Aplicar cupón")
         }
 
-        if (couponUi.value.error != null) {
-            Text(
-                text = couponUi.value.error!!,
-                color = Color.Red,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+        couponUi.value.error?.let {
+            Text(text = it, color = Color.Red, modifier = Modifier.padding(top = 8.dp))
         }
 
-        // DESCUENTO
-        if (discount > 0) {
-            SummaryRow("Descuento (${discount}%)", -(subtotal * discount / 100))
+        if (discountPercent > 0) {
+            SummaryRow("Descuento (${discountPercent}%)", -discountValue)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // TOTAL FINAL
         SummaryRow("Total Final", total, highlight = true)
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -119,9 +114,9 @@ fun PurchaseScreen(
             Text("Pagar", color = Color.Black)
         }
 
-        if (payUi.value.error != null) {
+        payUi.value.error?.let {
             Text(
-                text = payUi.value.error!!,
+                text = it,
                 color = Color.Red,
                 modifier = Modifier.padding(top = 12.dp)
             )
