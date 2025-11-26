@@ -1,172 +1,182 @@
-// Archivo: CartScreen.kt
 package com.example.levelup.ui.screens
 
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-// Imports de Material 3
 import androidx.compose.material3.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Payment
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import com.example.levelup.model.CartItem
 import com.example.levelup.viewmodel.CartViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import java.text.NumberFormat
-import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
-    cartViewModel: CartViewModel,
-    navController: NavController
+    onCheckout: () -> Unit = {}, // Navegar a PurchaseScreen
+    navController: NavHostController
 ) {
-    val items by cartViewModel.cartItems.collectAsState()
-    val total = items.sumOf { it.product.price * it.quantity }
+    val vm: CartViewModel = hiltViewModel()
+    val ui = vm.ui.collectAsState()
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+    LaunchedEffect(Unit) {
+        vm.loadCart()
+    }
 
-    var fabPressed by remember { mutableStateOf(false) }
-    val fabScale by animateFloatAsState(targetValue = if (fabPressed) 1.08f else 1f, label = "fabScaleAnimation")
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0D0D0D))
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Carrito",
+            style = MaterialTheme.typography.headlineMedium,
+            color = Color.White
+        )
 
-    val clLocale = remember { Locale.Builder().setLanguage("es").setRegion("CL").build() }
-    val nf = remember { NumberFormat.getCurrencyInstance(clLocale) }
+        Spacer(modifier = Modifier.height(12.dp))
 
-    Scaffold(
-        containerColor = Color.Black,
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                icon = { Icon(Icons.Default.Payment, contentDescription = "Pagar") },
-                text = { Text("Pagar") },
-                onClick = {
-
-                    if (items.isNotEmpty()) {
-                        navController.navigate("purchase")
-                    } else {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Tu carrito está vacío.")
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .padding(end = 16.dp, bottom = 8.dp)
-                    .graphicsLayer(scaleX = fabScale, scaleY = fabScale),
-                containerColor = Color.Gray,
-                contentColor = Color.Black
+        when {
+            ui.value.isLoading -> LoadingCart()
+            ui.value.error != null -> ErrorCart(ui.value.error!!)
+            ui.value.items.isEmpty() -> EmptyCart()
+            else -> CartListContent(
+                items = ui.value.items,
+                onDelete = { vm.deleteItem(it) },
+                onCheckout = onCheckout
             )
-        },
-        floatingActionButtonPosition = FabPosition.End,
-        bottomBar = {
-            Surface(
-                tonalElevation = 8.dp,
-                color = Color.Black,
-                contentColor = Color.White
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = Color.Black
-                        )
-                    }
+        }
+    }
+}
 
-                    Text(
-                        text = "Total: ${nf.format(total)}",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                }
+@Composable
+fun LoadingCart() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(color = Color.Cyan)
+    }
+}
+
+@Composable
+fun ErrorCart(msg: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = msg, color = Color.Red)
+    }
+}
+
+@Composable
+fun EmptyCart() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = "Tu carrito está vacío", color = Color.Gray)
+    }
+}
+
+@Composable
+fun CartListContent(
+    items: List<CartItem>,
+    onDelete: (Long) -> Unit,
+    onCheckout: () -> Unit
+) {
+    val subtotal = items.sumOf { it.price * it.quantity }
+
+    Column {
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(items) { item ->
+                CartItemCard(
+                    item = item,
+                    onDelete = { onDelete(item.id) }
+                )
             }
         }
-    ) { innerPadding ->
-        if (items.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentAlignment = Alignment.Center
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Total + Botón
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF141414))
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Subtotal: $$subtotal",
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = onCheckout,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BCD4))
             ) {
-                Text("Tu carrito está vacío", style = MaterialTheme.typography.headlineSmall, color = Color.Gray)
+                Text("Proceder al pago", color = Color.Black)
             }
-        } else {
-            LazyColumn(
+        }
+    }
+}
+
+@Composable
+fun CartItemCard(
+    item: CartItem,
+    onDelete: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A))
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = item.img,
+                contentDescription = item.name,
                 modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
+                    .size(70.dp)
+                    .padding(end = 12.dp)
+            )
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.name,
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = "Cantidad: ${item.quantity}",
+                    color = Color.Gray
+                )
+                Text(
+                    text = "$${item.price}",
+                    color = Color.Cyan,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+
+            Button(
+                onClick = onDelete,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
             ) {
-                items(items, key = { it.product.id }) { cartItem ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            cartItem.product.name,
-                            color = Color.White,
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(end = 8.dp)
-                        )
-
-                        Text("x${cartItem.quantity}", color = Color.White, modifier = Modifier.padding(end = 12.dp))
-
-                        Button(
-                            onClick = { cartViewModel.removeOne(cartItem.product.id) },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.DarkGray,
-                                contentColor = Color.White
-                            ),
-                            modifier = Modifier.size(40.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) { Text("-") }
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Button(
-                            onClick = { cartViewModel.addToCart(cartItem.product) },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.DarkGray,
-                                contentColor = Color.White
-                            ),
-                            modifier = Modifier.size(40.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) { Text("+") }
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Button(
-                            onClick = { cartViewModel.removeFromCart(cartItem.product.id) },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFB22222),
-                                contentColor = Color.Black
-                            )
-                        ) { Text("Quitar") }
-                    }
-                    HorizontalDivider(color = Color(0x33FFFFFF))
-                }
-
-                item { Spacer(modifier = Modifier.height(96.dp)) }
+                Text("X", color = Color.White)
             }
         }
     }

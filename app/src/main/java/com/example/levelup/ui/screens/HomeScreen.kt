@@ -1,6 +1,5 @@
 package com.example.levelup.ui.screens
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -20,35 +19,27 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.levelup.R
-import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
 
-// --- FIRMA CORREGIDA Y FINAL ---
-// Ahora recibe PaddingValues en lugar de un Modifier.
+
+
+// -------------------------------------------------------
+// HOME SCREEN
+// -------------------------------------------------------
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
-    paddingValues: PaddingValues, // <-- 1. Acepta PaddingValues
+    paddingValues: PaddingValues,
     onNavigateToProducts: () -> Unit
 ) {
-    // El Scaffold se eliminó porque ya lo provee GlobalScaffold.
     LazyColumn(
-        // 2. Aplica el padding del Scaffold PRIMERO
         modifier = Modifier
             .padding(paddingValues)
             .background(Color.Black)
             .fillMaxSize()
-            // 3. Luego, aplica cualquier padding adicional para el contenido
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Título + subtítulo
+        // Title
         item {
             Text(
                 text = "Bienvenidos a Level-Up Gamer",
@@ -63,24 +54,25 @@ fun HomeScreen(
             Spacer(Modifier.height(16.dp))
         }
 
-        // Carrusel principal
+        // Carousel
         item {
             val heroPager = rememberPagerState(pageCount = { 3 })
+
             HorizontalPager(
                 state = heroPager,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
             ) { page ->
-                val img = when (page) {
+                val imageRes = when (page) {
                     0 -> R.drawable.carousel_img_1
                     1 -> R.drawable.carousel_img_2
                     else -> R.drawable.carousel_img_3
                 }
-                // Carga segura de la imagen
+
                 runCatching {
                     Image(
-                        painter = painterResource(id = img),
+                        painter = painterResource(id = imageRes),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
@@ -91,11 +83,11 @@ fun HomeScreen(
                     }
                 }
             }
-            Spacer(Modifier.height(16.dp))
 
+            Spacer(Modifier.height(16.dp))
         }
 
-        // Info
+        // Triple info section
         item {
             InfoTripletSection()
             Spacer(Modifier.height(24.dp))
@@ -113,17 +105,8 @@ fun HomeScreen(
             Spacer(Modifier.height(24.dp))
         }
 
-        // Mapa
-        item {
-            Text(
-                "Encuéntranos en el Mapa 📍",
-                style = MaterialTheme.typography.titleLarge,
-                color = Color.White,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-            MapSectionSafe()
-            Spacer(Modifier.height(24.dp))
-        }
+        // Map
+
 
         // Footer
         item {
@@ -132,9 +115,9 @@ fun HomeScreen(
     }
 }
 
-
-// --- EL RESTO DE LAS FUNCIONES PRIVADAS SE MANTIENEN EXACTAMENTE IGUAL ---
-// No es necesario cambiar nada de aquí para abajo.
+// -------------------------------------------------------
+// SUBCOMPONENTES
+// -------------------------------------------------------
 
 @Composable
 private fun InfoTripletSection() {
@@ -149,7 +132,7 @@ private fun InfoTripletSection() {
         )
         SectionCard(
             title = "Visión 🌟",
-            body = "Ser la tienda online líder en productos gamer en Chile, reconocida por su innovación y servicio al cliente."
+            body = "Ser la tienda líder en productos gamer en Chile, reconocida por su innovación y servicio al cliente."
         )
     }
 }
@@ -183,6 +166,7 @@ private fun BlogsSectionSafe() {
     }
 
     val pager = rememberPagerState(pageCount = { blogIds.size })
+
     HorizontalPager(
         state = pager,
         modifier = Modifier
@@ -190,6 +174,7 @@ private fun BlogsSectionSafe() {
             .height(180.dp)
     ) { page ->
         val id = blogIds[page]
+
         Surface(
             color = Color(0xFF0F0F0F),
             shape = MaterialTheme.shapes.medium
@@ -215,56 +200,15 @@ private fun Context.safeDrawableId(name: String): Int? {
     return if (id == 0) null else id
 }
 
-@SuppressLint("UnrememberedMutableState")
-@Composable
-private fun MapSectionSafe() {
-    val context = LocalContext.current
-    val canShowMap = remember {
-        GoogleApiAvailability.getInstance()
-            .isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS
-    }
+// -------------------------------------------------------
+// MAP
+// -------------------------------------------------------
 
-    if (!canShowMap) {
-        Surface(
-            color = Color(0xFF111111),
-            shape = MaterialTheme.shapes.medium,
-            tonalElevation = 2.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp)
-        ) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Mapa no disponible en este dispositivo", color = Color.White)
-            }
-        }
-        return
-    }
 
-    val valparaiso = LatLng(-33.0472, -71.6127)
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(valparaiso, 12f)
-    }
-    Surface(
-        color = Color(0xFF111111),
-        shape = MaterialTheme.shapes.medium,
-        tonalElevation = 2.dp,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(220.dp)
-    ) {
-        GoogleMap(
-            cameraPositionState = cameraPositionState,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Marker(
-                state = MarkerState(position = valparaiso),
-                title = "Level-Up Gamer (Valparaíso)",
-                snippet = "¡Te esperamos!"
-            )
-        }
-    }
-}
 
+// -------------------------------------------------------
+// FOOTER
+// -------------------------------------------------------
 @Composable
 private fun FooterSection() {
     Column(
@@ -280,10 +224,17 @@ private fun FooterSection() {
             color = Color.White
         )
         Spacer(Modifier.height(10.dp))
+
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Chip("PayPal"); Chip("Visa"); Chip("Mastercard"); Chip("Apple Pay"); Chip("Google Pay")
+            Chip("PayPal")
+            Chip("Visa")
+            Chip("Mastercard")
+            Chip("Apple Pay")
+            Chip("Google Pay")
         }
+
         Spacer(Modifier.height(10.dp))
+
         Text(
             "© 2025 Level-Up Gamer. Todos los derechos reservados.",
             style = MaterialTheme.typography.bodySmall,

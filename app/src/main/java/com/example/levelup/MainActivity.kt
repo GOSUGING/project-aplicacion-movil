@@ -7,16 +7,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.levelup.data.SessionManager
 import com.example.levelup.ui.components.AppTopBar
 import com.example.levelup.ui.screens.*
-import com.example.levelup.ui.theme.LevelUpTheme
 import com.example.levelup.viewmodel.CartViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -25,9 +22,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            LevelUpTheme {
-                AppNavigation()
-            }
+            // LevelUpTheme se debería definir aquí si tienes personalización de tema
+            AppNavigation()
         }
     }
 }
@@ -35,177 +31,109 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    val cartViewModel: CartViewModel = viewModel()
+
+    // Obtenemos el CartViewModel aquí para que la AppTopBar siempre tenga el contador actualizado
+    val cartViewModel: CartViewModel = hiltViewModel()
 
     NavHost(
         navController = navController,
         startDestination = "home"
     ) {
 
-        // --- Pantallas que usan la barra de navegación ---
+        // --- PANTALLAS PRINCIPALES CON LA BARRA DE NAVEGACIÓN ---
 
-        composable("home") {
-            Scaffold(
-                topBar = {
-                    AppTopBar(
-                        cartViewModel = cartViewModel,
-                        onCartClick = { navController.navigate("cart") },
-                        onMenuProducts = { navController.navigate("products") },
-                        onMenuCategories = { navController.navigate("categories") },
-                        onMenuLogin = { navController.navigate("login") },
-                        onMenuRegister = { navController.navigate("register") },
-                        onMenuProfile = { navController.navigate("profile") },
-                        onTitleClick = { navController.navigate("home") }
-                    )
-                },
-                containerColor = Color.Black
-            ) { paddingValues ->
-                HomeScreen(
-                    paddingValues = paddingValues,
-                    onNavigateToProducts = { navController.navigate("products") }
-                )
-            }
-        }
-
-        composable("categories") {
-            Scaffold(
-                topBar = {
-                    AppTopBar(
-                        cartViewModel = cartViewModel,
-                        onCartClick = { navController.navigate("cart") },
-                        onMenuProducts = { navController.navigate("products") },
-                        onMenuCategories = { navController.navigate("categories") },
-                        onMenuLogin = { navController.navigate("login") },
-                        onMenuRegister = { navController.navigate("register") },
-                        onMenuProfile = { navController.navigate("profile") },
-                        onTitleClick = { navController.navigate("home") }
-                    )
-                },
-                containerColor = Color.Black
-            ) { paddingValues ->
-                CategoriesScreen(
-                    paddingValues = paddingValues,
-                    navController = navController
-                )
-            }
-        }
-
-        composable(
-            route = "products?category={category}",
-            arguments = listOf(navArgument("category") {
-                type = NavType.StringType
-                nullable = true
-                defaultValue = null
-            })
-        ) { backStackEntry ->
-            val category = backStackEntry.arguments?.getString("category")
-            Scaffold(
-                topBar = {
-                    AppTopBar(
-                        cartViewModel = cartViewModel,
-                        onCartClick = { navController.navigate("cart") },
-                        onMenuProducts = { navController.navigate("products") },
-                        onMenuCategories = { navController.navigate("categories") },
-                        onMenuLogin = { navController.navigate("login") },
-                        onMenuRegister = { navController.navigate("register") },
-                        onMenuProfile = { navController.navigate("profile") },
-                        onTitleClick = { navController.navigate("home") }
-                    )
-                },
-                containerColor = Color.Black
-            ) { paddingValues ->
-                ProductsScreen(
-                    paddingValues = paddingValues,
-                    navController = navController,
-                    cartViewModel = cartViewModel,
-                    category = category
-                )
-            }
-        }
-
-        composable("profile") {
-            Scaffold(
-                topBar = {
-                    AppTopBar(
-                        cartViewModel = cartViewModel,
-                        onCartClick = { navController.navigate("cart") },
-                        onMenuProducts = { navController.navigate("products") },
-                        onMenuCategories = { navController.navigate("categories") },
-                        onMenuLogin = { navController.navigate("login") },
-                        onMenuRegister = { navController.navigate("register") },
-                        onMenuProfile = { navController.navigate("profile") },
-                        onTitleClick = { navController.navigate("home") }
-                    )
-                },
-                containerColor = Color.Black
-            ) { paddingValues ->
-                ProfileScreen(
-                    paddingValues = paddingValues,
-                    navController = navController
-                )
-            }
-        }
-
-        composable("login") {
-            Scaffold(
-                topBar = {
-                    AppTopBar(
-                        cartViewModel = cartViewModel,
-                        onCartClick = { navController.navigate("cart") },
-                        onMenuProducts = { navController.navigate("products") },
-                        onMenuCategories = { navController.navigate("categories") },
-                        onMenuLogin = { navController.navigate("login") },
-                        onMenuRegister = { navController.navigate("register") },
-                        onMenuProfile = { navController.navigate("profile") },
-                        onTitleClick = { navController.navigate("home") }
-                    )
-                },
-                containerColor = Color.Black
-            ) { paddingValues ->
-                LoginScreen(
-                    paddingValues = paddingValues,
-                    navController = navController,
-                    onLoginSuccess = {
-                        navController.navigate("profile") {
-                            popUpTo("home")
+        val screensWithTopBar = listOf("home", "categories", "products", "profile", "login", "register", "admin")
+        screensWithTopBar.forEach { screen ->
+            composable(
+                route = if (screen == "products") "products?category={category}" else screen,
+                arguments = if (screen == "products") listOf(navArgument("category") {
+                    type = NavType.StringType
+                    nullable = true
+                }) else emptyList()
+            ) { backStackEntry ->
+                Scaffold(
+                    topBar = {
+                        AppTopBar(
+                            cartViewModel = cartViewModel,
+                            onCartClick = { navController.navigate("cart") },
+                            onMenuProducts = { navController.navigate("products") },
+                            onMenuCategories = { navController.navigate("categories") },
+                            onMenuLogin = { navController.navigate("login") },
+                            onMenuRegister = { navController.navigate("register") },
+                            onMenuProfile = { navController.navigate("profile") },
+                            onTitleClick = { navController.navigate("home") }
+                        )
+                    },
+                    containerColor = Color.Black
+                ) { padding ->
+                    // Decide qué pantalla mostrar basándose en la ruta
+                    when (screen) {
+                        "home" -> HomeScreen(
+                            paddingValues = padding,
+                            onNavigateToProducts = { navController.navigate("products") }
+                        )
+                        "categories" -> CategoriesScreen(
+                            paddingValues = padding,
+                            navController = navController
+                        )
+                        "products" -> {
+                            val category = backStackEntry.arguments?.getString("category")
+                            ProductsScreen(
+                                paddingValues = padding,
+                                navController = navController,
+                                category = category
+                            )
                         }
+                        "profile" -> ProfileScreen(
+                            paddingValues = padding,
+                            navController = navController
+                        )
+                        "login" -> LoginScreen(
+                            paddingValues = padding,
+                            navController = navController,
+                            onLoginSuccess = {
+                                // Lógica simplificada: siempre navega al perfil después del login
+                                navController.navigate("profile") {
+                                    popUpTo("home") { inclusive = false }
+                                }
+                            }
+                        )
+                        "register" -> RegisterScreen(
+                            paddingValues = padding,
+                            navController = navController // Se pasa por si se necesita navegar al login post-registro
+                        )
+                        "admin" -> AdminScreen(navController = navController)
                     }
-                )
+                }
             }
         }
 
-        composable("register") {
-            Scaffold(
-                topBar = {
-                    AppTopBar(
-                        cartViewModel = cartViewModel,
-                        onCartClick = { navController.navigate("cart") },
-                        onMenuProducts = { navController.navigate("products") },
-                        onMenuCategories = { navController.navigate("categories") },
-                        onMenuLogin = { navController.navigate("login") },
-                        onMenuRegister = { navController.navigate("register") },
-                        onMenuProfile = { navController.navigate("profile") },
-                        onTitleClick = { navController.navigate("home") }
-                    )
-                },
-                containerColor = Color.Black
-            ) { paddingValues ->
-                RegisterScreen(paddingValues = paddingValues)
-            }
-        }
+        // --- PANTALLAS CON DISEÑO PROPIO (SIN LA BARRA DE NAVEGACIÓN PRINCIPAL) ---
 
         composable("cart") {
+            // --- LLAMADA CORREGIDA ---
+            // CartScreen obtiene sus dependencias internamente con Hilt.
+            // Solo le pasamos las acciones de navegación que necesita.
             CartScreen(
-                cartViewModel = cartViewModel,
-                navController = navController
+                navController = navController,
+                onCheckout = { navController.navigate("purchase") }
             )
         }
 
-
         composable("purchase") {
             PurchaseScreen(
-                navController = navController,
-                cartViewModel = cartViewModel
+                onPurchaseSuccess = { navController.navigate("purchase_result") }
+            )
+        }
+
+        composable("purchase_result") {
+            PurchaseResultScreen(
+                onReturnHome = {
+                    navController.navigate("home") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                },
+                onViewBills = { /* Aquí iría la navegación a la pantalla de facturas */ }
             )
         }
     }

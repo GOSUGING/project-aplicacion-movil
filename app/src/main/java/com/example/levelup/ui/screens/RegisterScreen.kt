@@ -16,13 +16,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel // <-- 1. CAMBIA EL IMPORT
+import androidx.navigation.NavController
 import com.example.levelup.viewmodel.RegisterViewModel
 import java.util.Calendar
 
 @Composable
 fun RegisterScreen(
     paddingValues: PaddingValues,
-    vm: RegisterViewModel = hiltViewModel() // <-- 2. USA hiltViewModel()
+    vm: RegisterViewModel = hiltViewModel(),
+    navController: NavController// <-- 2. USA hiltViewModel()
 ) {
     val ui by vm.ui.collectAsState()
 

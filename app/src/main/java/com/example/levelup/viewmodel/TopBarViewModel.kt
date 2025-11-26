@@ -1,15 +1,31 @@
 package com.example.levelup.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.levelup.data.SessionManager
+import androidx.lifecycle.viewModelScope
+import com.example.levelup.data.session.SessionManager
+import com.example.levelup.data.session.UserSession
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class TopBarViewModel @Inject constructor(
-    // Pide el SessionManager a Hilt, que sabe cómo crearlo como un Singleton
-    sessionManager: SessionManager
+    private val sessionManager: SessionManager
 ) : ViewModel() {
-    // Expone el estado del usuario actual a la UI de la TopBar
-    val currentUser = sessionManager.currentUser
+
+    private val _currentUser = MutableStateFlow<UserSession?>(null)
+    val currentUser: StateFlow<UserSession?> = _currentUser
+
+    init {
+        // cargar usuario al iniciar el ViewModel
+        viewModelScope.launch {
+            _currentUser.value = sessionManager.getCurrentUser()
+        }
+    }
+
+    fun refreshUser() {
+        _currentUser.value = sessionManager.getCurrentUser()
+    }
 }
