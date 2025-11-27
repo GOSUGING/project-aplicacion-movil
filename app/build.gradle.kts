@@ -68,6 +68,10 @@ dependencies {
     implementation(libs.material)
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
     implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation(libs.androidx.compose.animation.core)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.geometry)
+    implementation(libs.play.services.location)
 
     // Compose Tooling Debug
     debugImplementation("androidx.compose.ui:ui-tooling")

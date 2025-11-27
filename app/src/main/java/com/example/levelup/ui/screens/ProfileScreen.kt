@@ -26,16 +26,35 @@ fun ProfileScreen(
     vm: ProfileViewModel = hiltViewModel()
 ) {
     val uiState = vm.uiState
+
+    // Detectar admin
+    val isAdmin = uiState.role?.uppercase()?.contains("ADMIN") == true
+
+    // Redirección solo una vez
+    LaunchedEffect(isAdmin) {
+        if (isAdmin) {
+            navController.navigate("admin_profile") {
+                popUpTo("profile") { inclusive = true }
+            }
+        }
+    }
+
+    if (isAdmin) return
+
+    // Mensaje de éxito
     var successMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(uiState.successMessage) {
-        if (uiState.successMessage != null) {
-            successMessage = uiState.successMessage
-            delay(3000)
+        uiState.successMessage?.let {
+            successMessage = it
+            delay(2500)
             successMessage = null
         }
     }
 
+    // ============================
+    // PERFIL NORMAL (USUARIO)
+    // ============================
     Column(
         modifier = Modifier
             .padding(paddingValues)
@@ -45,7 +64,6 @@ fun ProfileScreen(
             .padding(16.dp)
     ) {
 
-        // Títulos
         Text(
             "Mi Perfil",
             style = MaterialTheme.typography.headlineMedium,
@@ -66,62 +84,52 @@ fun ProfileScreen(
             Spacer(Modifier.height(8.dp))
         }
 
-        // -------------------------------
-        // FORMULARIO CON ICONOS
-        // -------------------------------
         Column {
 
-            // NOMBRE
             OutlinedTextField(
                 value = uiState.name,
                 onValueChange = { vm.onFieldChange("name", it) },
                 label = { Text("Nombre completo") },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                leadingIcon = { Icon(Icons.Default.Person, null) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
             Spacer(Modifier.height(8.dp))
 
-            // EMAIL
             OutlinedTextField(
                 value = uiState.email,
                 onValueChange = { vm.onFieldChange("email", it) },
                 label = { Text("Email") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                leadingIcon = { Icon(Icons.Default.Email, null) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
             Spacer(Modifier.height(8.dp))
 
-            // DIRECCIÓN
             OutlinedTextField(
                 value = uiState.address,
                 onValueChange = { vm.onFieldChange("address", it) },
                 label = { Text("Dirección") },
-                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
+                leadingIcon = { Icon(Icons.Default.LocationOn, null) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
             Spacer(Modifier.height(8.dp))
 
-            // TELÉFONO
             OutlinedTextField(
                 value = uiState.phone,
                 onValueChange = { vm.onFieldChange("phone", it) },
                 label = { Text("Teléfono") },
-                leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
+                leadingIcon = { Icon(Icons.Default.Phone, null) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
 
             Spacer(Modifier.height(24.dp))
 
-            // -------------------------------
-            // PREFERENCIAS CON ICONOS
-            // -------------------------------
             Text("Preferencias", color = Color.White, fontWeight = FontWeight.SemiBold)
 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -146,28 +154,28 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // -------------------------------
-            // BOTONES CON ICONOS
-            // -------------------------------
+            // ==========================
+            // BOTONES: GUARDAR + CERRAR SESIÓN
+            // ==========================
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
-                // Guardar
+                // GUARDAR
                 Button(
                     onClick = { vm.saveProfile() },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f)
                 ) {
                     Icon(Icons.Default.Save, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text("Guardar")
                 }
 
-                // Cerrar sesión
+                // CERRAR SESIÓN REAL
                 OutlinedButton(
                     onClick = {
-                        vm.logout()
+                        vm.logout()  // limpia token + user
                         navController.navigate("home") {
                             popUpTo("home") { inclusive = true }
                         }

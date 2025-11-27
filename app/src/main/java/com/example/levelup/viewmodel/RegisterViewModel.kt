@@ -2,8 +2,9 @@ package com.example.levelup.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.levelup.data.UserEntity
-import com.example.levelup.data.UserRepository
+import com.example.levelup.data.dto.RegisterRequest
+import com.example.levelup.data.dto.RegisterResponse
+import com.example.levelup.data.network.AuthApi
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,11 +15,15 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import javax.inject.Inject
 
-// La data class para el estado de la UI se mantiene igual.
+// ===============================================================
+// UI STATE
+// ===============================================================
 data class RegisterUiState(
     val nombre: String = "",
     val email: String = "",
     val fechaNacimiento: String = "",
+    val phone: String = "",
+    val address: String = "",
     val password: String = "",
     val password2: String = "",
     val error: String? = null,
@@ -26,37 +31,34 @@ data class RegisterUiState(
     val touched: Set<String> = emptySet()
 )
 
-// --- VIEWMODEL MODIFICADO PARA HILT ---
-
-// 1. Se anota la clase con @HiltViewModel
+// ===============================================================
+// VIEWMODEL
+// ===============================================================
 @HiltViewModel
-// 2. El constructor ahora pide las dependencias y se anota con @Inject
 class RegisterViewModel @Inject constructor(
-    private val repo: UserRepository // Hilt proveerá esta instancia automáticamente
-) : ViewModel() { // 3. Ya no necesita heredar de AndroidViewModel
-
-    // 4. Se eliminan las líneas que creaban las dependencias manualmente
-    // private val dao = DbModule.db(app).userDao()
-    // private val repo = UserRepository(dao)
+    private val api: AuthApi
+) : ViewModel() {
 
     private val _ui = MutableStateFlow(RegisterUiState())
     val ui = _ui.asStateFlow()
 
-    // Maneja los cambios en los campos de texto
+    // Cambios de campos
     fun onChange(field: String, value: String) {
         _ui.update {
             when (field) {
-                "nombre" -> it.copy(nombre = value, error = null, success = null)
-                "email" -> it.copy(email = value, error = null, success = null)
-                "fechaNacimiento" -> it.copy(fechaNacimiento = value, error = null, success = null)
-                "password" -> it.copy(password = value, error = null, success = null)
-                "password2" -> it.copy(password2 = value, error = null, success = null)
+                "nombre" -> it.copy(nombre = value, error = null)
+                "email" -> it.copy(email = value, error = null)
+                "fechaNacimiento" -> it.copy(fechaNacimiento = value, error = null)
+                "phone" -> it.copy(phone = value, error = null)
+                "address" -> it.copy(address = value, error = null)
+                "password" -> it.copy(password = value, error = null)
+                "password2" -> it.copy(password2 = value, error = null)
                 else -> it
             }
         }
     }
 
-    // Se activa cuando un campo pierde el foco, para validación en tiempo real
+    // Marcamos campo tocado
     fun onBlur(field: String) {
         _ui.update { it.copy(touched = it.touched + field) }
         validateIfTouched()
@@ -64,79 +66,52 @@ class RegisterViewModel @Inject constructor(
 
     private fun validateIfTouched(): Boolean = validateForm(onlyTouched = true)
 
-    // Lógica principal de validación del formulario
+    // ===============================================================
+    // VALIDACIONES
+    // ===============================================================
     private fun validateForm(onlyTouched: Boolean = false): Boolean {
         val s = _ui.value
-        fun touch(field: String) = !onlyTouched || s.touched.contains(field)
+        fun touched(f: String) = !onlyTouched || s.touched.contains(f)
 
-        if (touch("nombre") && s.nombre.isBlank()) {
-            setError("Por favor ingrese su nombre completo"); return false
-        }
-        if (touch("email") && s.email.isBlank()) {
-            setError("Por favor ingrese su correo electrónico"); return false
-        }
-        if (touch("email") && s.email.isNotBlank() && !validateEmail(s.email)) {
-            setError("Por favor ingrese un correo electrónico válido"); return false
-        }
-        if (touch("fechaNacimiento") && s.fechaNacimiento.isBlank()) {
-            setError("Por favor ingrese su fecha de nacimiento"); return false
-        }
-        if (touch("fechaNacimiento") && s.fechaNacimiento.isNotBlank() && !validateAge(s.fechaNacimiento)) {
-            setError("Debes ser mayor de 18 años para registrarte"); return false // Cambiado a 18
-        }
-        if (touch("password") && s.password.isBlank()) {
-            setError("Por favor ingrese una contraseña"); return false
-        }
-        if (touch("password") && s.password.isNotBlank() && !validatePassword(s.password)) {
-            setError("La contraseña debe tener al menos 8 caracteres, incluir un número y un símbolo"); return false
-        }
-        if (touch("password2") && s.password2.isBlank()) {
-            setError("Por favor confirme su contraseña"); return false
-        }
-        if (touch("password2") && s.password2.isNotBlank() && s.password != s.password2) {
-            setError("Las contraseñas no coinciden"); return false
-        }
+        if (touched("nombre") && s.nombre.isBlank())
+            return error("Por favor ingresa tu nombre completo")
 
-        _ui.update { it.copy(error = null) } // Si todo es válido, limpia cualquier error
+        if (touched("email") && s.email.isBlank())
+            return error("Por favor ingresa tu correo")
+
+        if (touched("email") && !validateEmail(s.email))
+            return error("Ingresa un correo electrónico válido")
+
+        if (touched("fechaNacimiento") && s.fechaNacimiento.isBlank())
+            return error("Ingresa tu fecha de nacimiento")
+
+        if (touched("fechaNacimiento") && !validateAge(s.fechaNacimiento))
+            return error("Debes ser mayor de 18 años para registrarte")
+
+        if (touched("phone") && s.phone.isBlank())
+            return error("Por favor ingresa tu número telefónico")
+
+        if (touched("address") && s.address.isBlank())
+            return error("Por favor ingresa tu dirección")
+
+        if (touched("password") && s.password.isBlank())
+            return error("Ingresa una contraseña válida")
+
+        if (touched("password") && !validatePassword(s.password))
+            return error("La contraseña debe tener 8 caracteres, un número y un símbolo")
+
+        if (touched("password2") && s.password2 != s.password)
+            return error("Las contraseñas no coinciden")
+
+        _ui.update { it.copy(error = null) }
         return true
     }
 
-    // Función que se llama al presionar el botón de registrar
-    fun submit() {
-        _ui.update { it.copy(touched = setOf("nombre", "email", "fechaNacimiento", "password", "password2")) }
-        if (!validateForm(onlyTouched = false)) return
-
-        val s = _ui.value
-        viewModelScope.launch {
-            val user = UserEntity(
-                nombre = s.nombre.trim(),
-                email = s.email.trim().lowercase(),
-                fechaNacimiento = s.fechaNacimiento.trim(),
-                passwordHash = s.password // En producción, esto debería ser un hash
-            )
-
-            val result = repo.register(user)
-            result.fold(
-                onSuccess = {
-                    _ui.update { RegisterUiState(success = "¡Registro exitoso! Ya puedes iniciar sesión") }
-                },
-                onFailure = { e ->
-                    val msg = if (e.message?.contains("UNIQUE", true) == true) {
-                        "El correo electrónico ya está registrado"
-                    } else {
-                        "Ocurrió un error inesperado durante el registro"
-                    }
-                    setError(msg)
-                }
-            )
-        }
-    }
-
-    private fun setError(msg: String) {
+    private fun error(msg: String): Boolean {
         _ui.update { it.copy(error = msg, success = null) }
+        return false
     }
 
-    // --- Funciones de Validación ---
     private fun validateEmail(email: String): Boolean =
         Regex("\\S+@\\S+\\.\\S+").matches(email)
 
@@ -148,8 +123,55 @@ class RegisterViewModel @Inject constructor(
         val today = LocalDate.now()
         var age = today.year - birth.year
         if (today.dayOfYear < birth.dayOfYear) age--
-        age >= 18 // Cambiado a 18 años
+        age >= 18
     } catch (_: DateTimeParseException) {
         false
+    }
+
+    // ===============================================================
+    // SUBMIT → ENVÍA REQUEST REAL AL AUTH API
+    // ===============================================================
+    fun submit() {
+        // marcamos todos los campos
+        _ui.update {
+            it.copy(
+                touched = setOf("nombre", "email", "fechaNacimiento", "phone", "address", "password", "password2")
+            )
+        }
+
+        if (!validateForm(false)) return
+
+        val s = _ui.value
+
+        val req = RegisterRequest(
+            name = s.nombre.trim(),
+            email = s.email.trim(),
+            password = s.password.trim(),
+            phone = s.phone.trim(),
+            address = s.address.trim(),
+            fechaNacimiento = s.fechaNacimiento.trim(),
+            role = "USER"
+        )
+
+        viewModelScope.launch {
+            try {
+                val res: RegisterResponse = api.register(req)
+
+                _ui.update {
+                    RegisterUiState(
+                        success = res.message,
+                        error = null
+                    )
+                }
+
+            } catch (e: Exception) {
+                _ui.update {
+                    it.copy(
+                        error = e.message ?: "Error al registrar",
+                        success = null
+                    )
+                }
+            }
+        }
     }
 }

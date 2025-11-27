@@ -2,8 +2,9 @@ package com.example.levelup.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.levelup.data.ProductRepository
+import com.example.levelup.data.dto.ProductDTO
 import com.example.levelup.data.network.ProductApi
-import com.example.levelup.data.dto.ProductDTO // Asegúrate de que este DTO existe
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,16 +12,20 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// --- 1. ESTADO DE LA UI ---
+// ------------------------------------------------------------
+// UI STATE
+// ------------------------------------------------------------
 data class AdminProductUiState(
     val products: List<ProductDTO> = emptyList(),
     val error: String? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val successMessage: String? = null,
+    val role: String = ""
 )
 
 @HiltViewModel
 class AdminViewModel @Inject constructor(
-    // Solo se inyectan las dependencias necesarias para la gestión de productos
+    private val repo: ProductRepository,
     private val productApi: ProductApi
 ) : ViewModel() {
 
@@ -28,51 +33,87 @@ class AdminViewModel @Inject constructor(
     val ui = _ui.asStateFlow()
 
     init {
-        // Cargar productos automáticamente al inicio
         loadProducts()
     }
 
-    // --- 2. CARGA DE PRODUCTOS ---
+    // ------------------------------------------------------------
+    // SETEAR ROL DEL USUARIO
+    // ------------------------------------------------------------
+    fun setRole(role: String?) {
+        _ui.update { it.copy(role = role?.uppercase() ?: "") }
+    }
+
+    // ------------------------------------------------------------
+    // CARGAR PRODUCTOS
+    // ------------------------------------------------------------
     fun loadProducts() {
         if (_ui.value.isLoading) return
+
         _ui.update { it.copy(isLoading = true, error = null) }
 
         viewModelScope.launch {
             try {
-                // Llama al API para obtener la lista de productos
-                val fetchedProducts = productApi.getProducts()
-                _ui.update { it.copy(products = fetchedProducts, isLoading = false) }
+                val list = productApi.getProducts()
+                _ui.update {
+                    it.copy(
+                        products = list,
+                        isLoading = false,
+                        successMessage = "Inventario cargado correctamente"
+                    )
+                }
             } catch (e: Exception) {
                 _ui.update {
                     it.copy(
-                        error = "Error al cargar el inventario: ${e.message}",
+                        error = "Error al cargar productos: ${e.message}",
                         isLoading = false
                     )
                 }
-                e.printStackTrace()
             }
         }
     }
 
-    // --- 3. ACTUALIZACIÓN DE STOCK ---
-    fun updateStock(id: Long, amount: Int) {
-        viewModelScope.launch {
-            _ui.update { it.copy(isLoading = true, error = null) }
-            try {
-                // Llama al API para actualizar el stock del producto específico
-                productApi.updateStock(id, amount)
+    // ------------------------------------------------------------
+    // ACTUALIZAR STOCK USANDO updateProduct()
+    // ------------------------------------------------------------
+    fun editStock(product: ProductDTO, newStock: Int) {
+        if (newStock < 0) return
 
-                // Recarga la lista para reflejar el cambio en la UI
+        viewModelScope.launch {
+            try {
+                // Crear nuevo producto con stock actualizado
+                val updatedProduct = product.copy(stock = newStock)
+
+                // Llamar al backend
+                repo.updateProduct(updatedProduct)
+
+                // Recargar lista después del update
                 loadProducts()
+
+                // Refrescar UI sin perder mensaje
+                _ui.update {
+                    it.copy(
+                        successMessage = "Stock de '${product.name}' actualizado correctamente",
+                        error = null
+                    )
+                }
+
             } catch (e: Exception) {
                 _ui.update {
                     it.copy(
-                        error = "Error al actualizar stock: ${e.message}",
-                        isLoading = false
+                        error = "Error al actualizar stock: ${e.message}"
                     )
                 }
-                e.printStackTrace()
             }
         }
+    }
+
+
+
+
+    // ------------------------------------------------------------
+    // LIMPIAR MENSAJES
+    // ------------------------------------------------------------
+    fun clearMessages() {
+        _ui.update { it.copy(error = null, successMessage = null) }
     }
 }

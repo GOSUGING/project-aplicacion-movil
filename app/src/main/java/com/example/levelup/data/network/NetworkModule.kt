@@ -29,54 +29,77 @@ object NetworkModule {
             .addInterceptor(logging)
             .build()
 
+    // ======================================================
+    // ⭐ AUTH + USERS (MISMO SERVICIO 8081)
+    // ======================================================
     @Provides
     @Singleton
-    fun provideAuthApi(client: OkHttpClient): AuthApi =
+    fun provideAuthRetrofit(client: OkHttpClient): Retrofit =
         Retrofit.Builder()
-            .baseUrl("$HOST:8081/")   // ⭐️ LOGIN FUNCIONA AQUÍ
+            .baseUrl("$HOST:8081/")        // <-- AUTH + USERS AQUÍ
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()
-            .create(AuthApi::class.java)
 
+    @Provides
+    @Singleton
+    fun provideAuthApi(retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideUserApi(retrofit: Retrofit): UserApi =
+        retrofit.create(UserApi::class.java)
+
+    // ======================================================
+    // ⭐ PRODUCTOS (8085)
+    // ======================================================
     @Provides
     @Singleton
     fun provideProductApi(client: OkHttpClient): ProductApi =
         Retrofit.Builder()
-            .baseUrl("$HOST:8085/")   // ⭐️ PRODUCTOS
+            .baseUrl("$HOST:8085/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()
             .create(ProductApi::class.java)
 
+    // ======================================================
+    // ⭐ CARRITO (8082)
+    // ======================================================
     @Provides
     @Singleton
     fun provideCartApi(client: OkHttpClient): CartApi =
         Retrofit.Builder()
-            .baseUrl("$HOST:8082/")   // ⭐️ CARRITO
+            .baseUrl("$HOST:8082/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()
             .create(CartApi::class.java)
 
+    // ======================================================
+    // ⭐ CUPONES (8084)
+    // ======================================================
     @Provides
     @Singleton
     fun provideCouponsApi(client: OkHttpClient): CouponsApi =
         Retrofit.Builder()
-            .baseUrl("$HOST:8084/")   // ⭐️ CUPONES
+            .baseUrl("$HOST:8084/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()
             .create(CouponsApi::class.java)
 
+    // ======================================================
+    // ⭐ PAGOS (8083)
+    // ======================================================
     @Provides
     @Singleton
     fun providePaymentApi(client: OkHttpClient): PaymentApi =
         Retrofit.Builder()
-            .baseUrl("$HOST:8083/")   // ⭐️ PAGOS
+            .baseUrl("$HOST:8083/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()
             .create(PaymentApi::class.java)
-
 }

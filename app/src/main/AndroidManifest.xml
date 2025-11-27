@@ -2,6 +2,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- ===== PERMISOS ===== -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
+    <!-- GPS / Ubicación -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <!-- Para geocoder en Android 13+ -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <!-- Opcional: permite escribir logs (debug) -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage"/>
+
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -13,23 +29,23 @@
         android:theme="@style/Theme.LevelUp"
         android:networkSecurityConfig="@xml/network_security_config"
         android:name=".LevelUpApp"
-        tools:targetApi="31">
+        tools:targetApi="34">
 
-        <!-- API Key de Google Maps -->
+        <!-- API de Google Maps -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCHI-q5iRMxzLi5QvEnoOXlqgblaoM1BC0" />
+            android:value="AIzaSyCHI-q5iRMxzLi5QvEnoOXlqgblaoM1BC0"/>
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.LevelUp">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

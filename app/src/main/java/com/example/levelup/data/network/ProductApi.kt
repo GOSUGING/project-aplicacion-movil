@@ -5,6 +5,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 
 interface ProductApi {
@@ -12,11 +13,9 @@ interface ProductApi {
     @GET("api/v1/products")
     suspend fun getProducts(): List<ProductDTO>
 
-    @PUT("api/v1/products/descontar/{id}/{cantidad}")
-    suspend fun updateStock(
+    @PUT("api/v1/products/{id}")
+    suspend fun updateProduct(
         @Path("id") id: Long,
-        @Path("cantidad") cantidad: Int
-    ): String
+        @Body product: ProductDTO
+    ): ProductDTO
 }
-
-

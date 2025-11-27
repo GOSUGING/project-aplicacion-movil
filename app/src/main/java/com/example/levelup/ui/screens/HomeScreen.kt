@@ -1,9 +1,11 @@
 package com.example.levelup.ui.screens
 
 import android.content.Context
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
@@ -12,49 +14,81 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.levelup.R
 
 
+// PALETA CYBERPUNK
+private val NeonGreen = Color(0xFF39FF14)
+private val NeonCyan = Color(0xFF00E5FF)
+private val NeonMagenta = Color(0xFFFF00FF)
+private val DarkBg = Color(0xFF050505)
 
-// -------------------------------------------------------
-// HOME SCREEN
-// -------------------------------------------------------
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     paddingValues: PaddingValues,
     onNavigateToProducts: () -> Unit
 ) {
+    // Glow animado del título
+    val glow by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1800, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = ""
+    )
+
     LazyColumn(
         modifier = Modifier
             .padding(paddingValues)
-            .background(Color.Black)
+            .background(DarkBg)
             .fillMaxSize()
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Title
+        // ---------- TITULO HOLOGRAFICO ----------
         item {
+            Spacer(Modifier.height(12.dp))
+
             Text(
-                text = "Bienvenidos a Level-Up Gamer",
-                style = MaterialTheme.typography.headlineLarge,
-                color = Color.White
+                text = "LEVEL-UP GAMER",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = NeonGreen,
+                style = TextStyle(
+                    shadow = Shadow(
+                        color = NeonGreen.copy(alpha = glow),
+                        blurRadius = 26f
+                    )
+                )
             )
+
+            Spacer(Modifier.height(4.dp))
+
             Text(
-                text = "Tu destino definitivo para equipos y accesorios de juego.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.White
+                text = "Equipamiento. Poder. Estilo.",
+                fontSize = 18.sp,
+                color = NeonCyan,
+                fontWeight = FontWeight.Medium
             )
+
             Spacer(Modifier.height(16.dp))
         }
 
-        // Carousel
+        // ---------- CAROUSEL CYBERPUNK ----------
         item {
             val heroPager = rememberPagerState(pageCount = { 3 })
 
@@ -62,53 +96,51 @@ fun HomeScreen(
                 state = heroPager,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(220.dp)
+                    .border(
+                        2.dp,
+                        Brush.horizontalGradient(listOf(NeonCyan, NeonMagenta, NeonGreen)),
+                        MaterialTheme.shapes.medium
+                    )
+                    .shadow(20.dp)
             ) { page ->
+
                 val imageRes = when (page) {
                     0 -> R.drawable.carousel_img_1
                     1 -> R.drawable.carousel_img_2
                     else -> R.drawable.carousel_img_3
                 }
 
-                runCatching {
-                    Image(
-                        painter = painterResource(id = imageRes),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }.onFailure {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Imagen no disponible", color = Color.White)
-                    }
-                }
+                Image(
+                    painter = painterResource(id = imageRes),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(20.dp))
         }
 
-        // Triple info section
+        // ---------- SECCIONES INFO CYBERPUNK ----------
         item {
             InfoTripletSection()
             Spacer(Modifier.height(24.dp))
         }
 
-        // Blogs
+        // ---------- BLOGS CYBER ----------
         item {
             Text(
-                "Blogs Destacados 📰",
+                "Blogs Destacados",
                 style = MaterialTheme.typography.titleLarge,
-                color = Color.White,
+                color = NeonCyan,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
             BlogsSectionSafe()
             Spacer(Modifier.height(24.dp))
         }
 
-        // Map
-
-
-        // Footer
+        // ---------- FOOTER ----------
         item {
             FooterSection()
         }
@@ -116,41 +148,46 @@ fun HomeScreen(
 }
 
 // -------------------------------------------------------
-// SUBCOMPONENTES
+// SUBCOMPONENTES CYBERPUNK
 // -------------------------------------------------------
 
 @Composable
 private fun InfoTripletSection() {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         SectionCard(
-            title = "Quienes Somos 🎮",
-            body = "Level-Up Gamer es una tienda online para gamers en Chile: consolas, accesorios, computadores y sillas, con despacho a todo el país."
+            title = "¿QUIÉNES SOMOS?",
+            body = "Somos Level-Up Gamer: tecnología, energía y pasión gamer en un solo lugar.",
+            color = NeonGreen
         )
         SectionCard(
-            title = "Misión 🚀",
-            body = "Entregar productos de alta calidad con una experiencia de compra única y personalizada en todo Chile."
+            title = "MISIÓN",
+            body = "Equiparte con productos de alto rendimiento para mejorar tu experiencia gaming.",
+            color = NeonCyan
         )
         SectionCard(
-            title = "Visión 🌟",
-            body = "Ser la tienda líder en productos gamer en Chile, reconocida por su innovación y servicio al cliente."
+            title = "VISIÓN",
+            body = "Ser la comunidad gamer más influyente de Chile.",
+            color = NeonMagenta
         )
     }
 }
 
 @Composable
-private fun SectionCard(title: String, body: String) {
+private fun SectionCard(title: String, body: String, color: Color) {
     Surface(
-        color = Color(0xFF111111),
+        color = Color(0xFF0F0F0F),
         contentColor = Color.White,
-        tonalElevation = 2.dp,
-        shadowElevation = 2.dp,
+        tonalElevation = 3.dp,
+        shadowElevation = 3.dp,
         shape = MaterialTheme.shapes.medium,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(2.dp, color, MaterialTheme.shapes.medium)
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text(title, style = MaterialTheme.typography.titleLarge, color = Color(0xFF39FF14))
+            Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = color)
             Spacer(Modifier.height(6.dp))
-            Text(body, style = MaterialTheme.typography.bodyMedium, color = Color(0xFFD3D3D3))
+            Text(body, fontSize = 15.sp, color = Color(0xFFD3D3D3))
         }
     }
 }
@@ -160,9 +197,7 @@ private fun SectionCard(title: String, body: String) {
 private fun BlogsSectionSafe() {
     val ctx = LocalContext.current
     val blogIds = remember {
-        listOf("blog1", "blog2", "blog3").map { name ->
-            ctx.safeDrawableId(name)
-        }
+        listOf("blog1", "blog2", "blog3").map { name -> ctx.safeDrawableId(name) }
     }
 
     val pager = rememberPagerState(pageCount = { blogIds.size })
@@ -172,16 +207,22 @@ private fun BlogsSectionSafe() {
         modifier = Modifier
             .fillMaxWidth()
             .height(180.dp)
+            .border(
+                2.dp,
+                Brush.horizontalGradient(listOf(NeonMagenta, NeonCyan)),
+                MaterialTheme.shapes.medium
+            )
     ) { page ->
+
         val id = blogIds[page]
 
         Surface(
-            color = Color(0xFF0F0F0F),
+            color = Color(0xFF111111),
             shape = MaterialTheme.shapes.medium
         ) {
             if (id != null) {
                 Image(
-                    painter = painterResource(id = id),
+                    painter = painterResource(id),
                     contentDescription = "Blog #$page",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -200,30 +241,28 @@ private fun Context.safeDrawableId(name: String): Int? {
     return if (id == 0) null else id
 }
 
-// -------------------------------------------------------
-// MAP
-// -------------------------------------------------------
-
-
 
 // -------------------------------------------------------
-// FOOTER
+// FOOTER CYBERPUNK
 // -------------------------------------------------------
 @Composable
 private fun FooterSection() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Black)
-            .padding(vertical = 16.dp),
+            .background(DarkBg)
+            .padding(vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Text(
             "Aceptamos todo medio de pago",
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = Color.White
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = NeonGreen
         )
-        Spacer(Modifier.height(10.dp))
+
+        Spacer(Modifier.height(12.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Chip("PayPal")
@@ -233,12 +272,12 @@ private fun FooterSection() {
             Chip("Google Pay")
         }
 
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(12.dp))
 
         Text(
-            "© 2025 Level-Up Gamer. Todos los derechos reservados.",
+            "© 2025 Level-Up Gamer",
             style = MaterialTheme.typography.bodySmall,
-            color = Color(0xFFD3D3D3)
+            color = NeonCyan
         )
     }
 }
@@ -246,15 +285,15 @@ private fun FooterSection() {
 @Composable
 private fun Chip(label: String) {
     Surface(
-        color = Color(0xFF39FF14),
+        color = NeonGreen,
         contentColor = Color.Black,
         shape = MaterialTheme.shapes.small,
-        tonalElevation = 2.dp
+        tonalElevation = 4.dp
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
         )
     }
 }

@@ -1,20 +1,32 @@
 package com.example.levelup.data.dto
 
-// Asumo que el campo 'total' es un entero grande (Long) ya que no tiene decimales en la imagen,
-// y que 'cantidad' es un entero (Int).
+import com.google.gson.annotations.SerializedName
 
 data class PaymentDTO(
-    val id: Long, // Columna 'id'
-    val cantidad: Int, // Columna 'cantidad' (total de unidades)
-    val total: Long, // Columna 'total' (usamos Long para montos grandes sin decimales)
-    val estado: String?, // Columna 'estado' (hacemos opcional por seguridad, aunque el JSON no lo muestra nulo)
+    @SerializedName("id")
+    val id: Long,
 
-    // CAMPOS QUE SON NULL O SE MANDAN VACÍOS EN LA BASE DE DATOS/JSON:
-    val fecha: String?, // Columna 'fecha' (Es NULL o vacío en muchas filas)
-    val nombreUsuario: String?, // Columna 'nombreUsuario' (Es NULL o vacío en muchas filas)
-    val direccionEnvio: String?, // Columna 'direccionEnvio' (Es NULL o vacío en muchas filas)
+    @SerializedName("cantidad")
+    val cantidad: Int,
 
-    // El DTO original no los incluye, pero son parte del JSON que mostraste:
-    val userId: Long, // (Asumiendo que este es el campo que usas para el usuario)
-    val rawPayload: String // Columna 'raw_payload' (JSON de los productos)
+    @SerializedName("total")
+    val total: Long,
+
+    @SerializedName("estado")
+    val estado: String?,
+
+    @SerializedName("fecha")
+    val fecha: String?,
+
+    @SerializedName("nombreUsuario")
+    val nombreUsuario: String?,
+
+    @SerializedName("direccionEnvio")
+    val direccionEnvio: String?,
+
+    @SerializedName("userId")
+    val userId: Long,
+
+    @SerializedName("raw_payload")
+    val rawPayload: String
 )

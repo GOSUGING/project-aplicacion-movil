@@ -1,31 +1,45 @@
 package com.example.levelup.ui.components
 
+import android.media.MediaPlayer
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-// --- ÍCONOS REQUERIDOS ---
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.* import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector // Necesario para RowWithIconText
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.levelup.data.session.UserSession
-import com.example.levelup.ui.theme.Orbitron
+import com.example.levelup.R
 import com.example.levelup.viewmodel.CartViewModel
 import com.example.levelup.viewmodel.TopBarViewModel
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import kotlin.random.Random
 
-@OptIn(ExperimentalMaterial3Api::class)
+// =========================
+// PALETA CYBERPUNK NEON
+// =========================
+private val NeonMagenta = Color(0xFFFF00FF)
+private val NeonCyan = Color(0xFF00E5FF)
+private val NeonLime = Color(0xFF39FF14)
+private val NeonPurple = Color(0xFFB400FF)
+private val NeonOrange = Color(0xFFFF6B00)
+private val BgBlack = Color(0xFF050505)
+
 @Composable
 fun AppTopBar(
     cartViewModel: CartViewModel,
@@ -36,176 +50,216 @@ fun AppTopBar(
     onMenuRegister: () -> Unit,
     onMenuProfile: () -> Unit,
     onTitleClick: () -> Unit,
-    // --- PARÁMETROS CONDICIONALES ---
     onAdminClick: () -> Unit,
-    isAdmin: Boolean,
-    // --------------------------------
-    backgroundColor: Color = Color.Black,
-    contentColor: Color = Color.White,
-    title: String = "Level-Up! Gamer"
+    isAdmin: Boolean
 ) {
-    val topBarViewModel: TopBarViewModel = hiltViewModel()
-    val currentUser by topBarViewModel.currentUser.collectAsState()
-    val cartCount by cartViewModel.cartItemCount.collectAsState()
+    val topBarVM: TopBarViewModel = hiltViewModel()
+    val currentUser by topBarVM.currentUser.collectAsState()
     var menuOpen by remember { mutableStateOf(false) }
-    val neon = Color(0xFF39FF14)
 
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(64.dp),
-        color = backgroundColor,
-        contentColor = contentColor,
-        shadowElevation = 4.dp
+        modifier = Modifier.fillMaxWidth(),
+        color = BgBlack
     ) {
-
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 4.dp),
+                .fillMaxWidth()
+                .height(70.dp)
+                .padding(horizontal = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // ---- MENU (BOTÓN DE ÍCONO) ----
+            // =========================
+            // MENÚ CYBERPUNK
+            // =========================
             Box {
                 IconButton(onClick = { menuOpen = true }) {
-                    Icon(
-                        imageVector = Icons.Filled.Menu,
-                        contentDescription = "Menú",
-                        tint = Color.White
-                    )
+                    Icon(Icons.Default.Menu, tint = NeonCyan, contentDescription = "Menu")
                 }
 
                 DropdownMenu(
                     expanded = menuOpen,
                     onDismissRequest = { menuOpen = false },
-                    modifier = Modifier.background(Color(0xFF111111))
+                    modifier = Modifier.background(Color(0xFF0B0B0B))
                 ) {
-
-                    // Ítems sin Icono
                     DropdownMenuItem(
-                        text = { Text("Productos", color = Color.White) },
-                        onClick = {
-                            menuOpen = false
-                            onMenuProducts()
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Categorías", color = Color.White) },
-                        onClick = {
-                            menuOpen = false
-                            onMenuCategories()
-                        }
+                        text = { GlowText("Productos", NeonCyan) },
+                        onClick = { menuOpen = false; onMenuProducts() }
                     )
 
-                    Divider(color = Color(0x33FFFFFF))
+                    DropdownMenuItem(
+                        text = { GlowText("Categorías", NeonCyan) },
+                        onClick = { menuOpen = false; onMenuCategories() }
+                    )
+
+                    Divider(color = NeonCyan.copy(alpha = 0.4f))
 
                     if (currentUser == null) {
-                        // Login con Icono
                         DropdownMenuItem(
-                            text = { RowWithIconText("Iniciar sesión", Icons.Default.Person) },
-                            onClick = {
-                                menuOpen = false
-                                onMenuLogin()
-                            }
+                            text = { RowWithIcon("Iniciar sesión", Icons.Default.Person, NeonMagenta) },
+                            onClick = { menuOpen = false; onMenuLogin() }
                         )
                         DropdownMenuItem(
-                            text = { Text("Registrarse", color = Color.White) },
-                            onClick = {
-                                menuOpen = false
-                                onMenuRegister()
-                            }
+                            text = { RowWithIcon("Registrarse", Icons.Default.Add, NeonLime) },
+                            onClick = { menuOpen = false; onMenuRegister() }
                         )
                     } else {
-                        // Perfil con Icono
                         DropdownMenuItem(
-                            text = { RowWithIconText("Mi Perfil", Icons.Default.AccountCircle) },
-                            onClick = {
-                                menuOpen = false
-                                onMenuProfile()
-                            }
+                            text = { RowWithIcon("Mi Perfil", Icons.Default.AccountCircle, NeonLime) },
+                            onClick = { menuOpen = false; onMenuProfile() }
                         )
                     }
 
-                    // --- OPCIÓN DE ADMIN CONDICIONAL ---
                     if (isAdmin) {
-                        Divider(color = Color(0x33FFFFFF))
+                        Divider(color = NeonPurple.copy(alpha = 0.4f))
+
                         DropdownMenuItem(
-                            text = { RowWithIconText("Admin Panel", Icons.Default.Menu, Color.Red) },
-                            onClick = {
-                                menuOpen = false
-                                onAdminClick()
-                            }
+                            text = { RowWithIcon("Panel Admin", Icons.Default.AdminPanelSettings, NeonOrange) },
+                            onClick = { menuOpen = false; onAdminClick() }
                         )
                     }
                 }
             }
 
-            // ---- TÍTULO ----
+            // =========================
+            // TÍTULO HOLOGRÁFICO
+            // =========================
             Text(
-                text = title,
-                // ...
+                "LEVEL-UP GAMER",
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 12.dp)
-                    .clickable { onTitleClick() }
+                    .clickable { onTitleClick() },
+                fontSize = 24.sp,
+                fontWeight = FontWeight.ExtraBold,
+                style = TextStyle(
+                    color = NeonCyan,
+                    shadow = Shadow(
+                        color = NeonCyan.copy(alpha = 0.9f),
+                        blurRadius = 24f
+                    )
+                )
             )
 
-            // --- BOTÓN CONDICIONAL ADMIN PAGE (ÍCONO) ---
-            if (isAdmin) {
-                IconButton(onClick = onAdminClick) {
-                    Icon(
-                        imageVector = Icons.Filled.Menu, // Usamos el icono de menú para representar Admin
-                        contentDescription = "Panel Admin",
-                        tint = Color.Red // Destacar el acceso admin
-                    )
-                }
-            }
-            // ------------------------------------------
-
-            // ---- PERFIL (ICONO) ----
+            // =========================
+            // PERFIL
+            // =========================
             IconButton(
                 onClick = {
                     if (currentUser == null) onMenuLogin()
                     else onMenuProfile()
                 }
             ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Perfil",
-                    tint = Color.White
-                )
+                Icon(Icons.Default.Person, tint = NeonMagenta, contentDescription = "Perfil")
             }
 
-            // ---- CARRITO (ICONO CON BADGE) ----
-            IconButton(onClick = onCartClick) {
-                BadgedBox(
-                    badge = {
-                        if (cartCount > 0) {
-                            Badge(
-                                containerColor = neon,
-                                contentColor = Color.Black
-                            ) { Text(cartCount.toString()) }
-                        }
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.ShoppingCart,
-                        contentDescription = "Carrito",
-                        tint = Color.White
-                    )
+            // =========================
+            // CARRITO CYBERPUNK
+            // =========================
+            CartIconWithParticles(cartViewModel, onClick = onCartClick)
+        }
+    }
+}
+
+@Composable
+fun CartIconWithParticles(
+    cartViewModel: CartViewModel,
+    onClick: () -> Unit
+) {
+    val count by cartViewModel.cartItemCount.collectAsState(initial = 0)
+    val ctx = LocalContext.current
+    val beep = remember { MediaPlayer.create(ctx, R.raw.cart_add) }
+
+    val scale = remember { Animatable(1f) }
+    var particles by remember { mutableStateOf<List<Offset>>(emptyList()) }
+
+    LaunchedEffect(count) {
+        if (count > 0) {
+            beep.start()
+
+            scale.animateTo(1.35f, tween(120))
+            scale.animateTo(1f, tween(150))
+
+            particles = List(14) {
+                Offset(
+                    Random.nextFloat() * 60f - 30f,
+                    Random.nextFloat() * -50f
+                )
+            }
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+
+        Canvas(
+            modifier = Modifier
+                .matchParentSize()
+                .alpha(0.9f)
+        ) {
+            particles.forEach { p ->
+                drawCircle(
+                    color = Color(
+                        Random.nextInt(100, 255),
+                        Random.nextInt(80, 255),
+                        Random.nextInt(200, 255)
+                    ),
+                    radius = Random.nextInt(3, 9).toFloat(),
+                    center = center + p
+                )
+            }
+        }
+
+        Icon(
+            Icons.Default.ShoppingCart,
+            contentDescription = "Carrito",
+            tint = NeonLime,
+            modifier = Modifier
+                .size(32.dp)
+                .graphicsLayer {
+                    scaleX = scale.value
+                    scaleY = scale.value
                 }
+        )
+
+        if (count > 0) {
+            Box(
+                modifier = Modifier
+                    .offset(x = 12.dp, y = (-12).dp)
+                    .background(NeonMagenta, shape = CircleShape)
+                    .padding(4.dp)
+            ) {
+                Text(
+                    text = count.toString(),
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
             }
         }
     }
 }
 
-// --- FUNCIÓN AUXILIAR MEJORADA PARA ÍCONOS Y TEXTO ---
 @Composable
-private fun RowWithIconText(text: String, icon: ImageVector, tint: Color = Color(0xFF39FF14)) {
+fun GlowText(text: String, color: Color) {
+    Text(
+        text,
+        color = color,
+        fontSize = 18.sp,
+        style = TextStyle(
+            shadow = Shadow(color.copy(alpha = 0.8f), blurRadius = 18f)
+        )
+    )
+}
+
+@Composable
+fun RowWithIcon(text: String, icon: ImageVector, tint: Color) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, contentDescription = null, tint = tint)
+        Icon(icon, tint = tint, contentDescription = null)
         Spacer(Modifier.width(8.dp))
-        Text(text, color = Color.White)
+        GlowText(text, tint)
     }
 }

@@ -1,6 +1,12 @@
 package com.example.levelup.ui.screens
 
+import android.Manifest
 import android.app.DatePickerDialog
+import android.location.Geocoder
+import android.media.MediaPlayer
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,165 +17,313 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel // <-- 1. CAMBIA EL IMPORT
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.levelup.R
 import com.example.levelup.viewmodel.RegisterViewModel
-import java.util.Calendar
+import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.delay
+import java.util.*
+
+private val NeonCyan = Color(0xFF00E5FF)
+private val NeonPurple = Color(0xFFFF00FF)
+private val SoftBg = Color(0xFF0A0A0A)
 
 @Composable
 fun RegisterScreen(
     paddingValues: PaddingValues,
-    vm: RegisterViewModel = hiltViewModel(),
-    navController: NavController// <-- 2. USA hiltViewModel()
+    navController: NavController,
+    vm: RegisterViewModel = hiltViewModel()
 ) {
-    val ui by vm.ui.collectAsState()
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
 
+    val beep = remember { MediaPlayer.create(ctx, R.raw.cart_add) }
+    val fusedLocation = remember { LocationServices.getFusedLocationProviderClient(ctx) }
+
+    val ui = vm.ui.collectAsState().value
+
+    // =============== SNACKBAR ===============
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Animación glow
+    val glow by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            tween(1500),
+            RepeatMode.Reverse
+        ),
+        label = ""
+    )
+
+    // =============== PERMISO GPS ===============
+    var gpsAllowed by remember { mutableStateOf(false) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> gpsAllowed = granted }
+
+    // =============== AUTO NAVEGAR AL LOGIN ===============
+    LaunchedEffect(ui.success) {
+        ui.success?.let { msg ->
+            beep.start()
+            snackbarHostState.showSnackbar(msg)
+            delay(1500)
+            navController.navigate("login") {
+                popUpTo("register") { inclusive = true }
+            }
+        }
+    }
+
+    // =============== UI PRINCIPAL ===============
     Column(
         modifier = Modifier
             .padding(paddingValues)
             .fillMaxSize()
-            .background(Color.Black)
+            .background(SoftBg)
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Formulario de Registro", color = Color.White, style = MaterialTheme.typography.headlineSmall)
+
+        // TÍTULO CYBERPUNK
+        Text(
+            "CREAR CUENTA",
+            color = NeonCyan,
+            style = MaterialTheme.typography.headlineLarge
+        )
+        Spacer(Modifier.height(16.dp))
+
+        // ERRORES
+        ui.error?.let {
+            Text(it, color = Color(0xFFFF6B6B))
+            Spacer(Modifier.height(8.dp))
+        }
+
+        // ===================== CAMPOS =====================
+
+        NeoField(
+            label = "Nombre completo",
+            value = ui.nombre,
+            onChange = { vm.onChange("nombre", it) }
+        )
+        Spacer(Modifier.height(12.dp))
+
+        NeoField(
+            label = "Correo electrónico",
+            value = ui.email,
+            onChange = { vm.onChange("email", it) }
+        )
+        Spacer(Modifier.height(12.dp))
+
+        // FECHA +18
+        BirthDateField(ui.fechaNacimiento) { vm.onChange("fechaNacimiento", it) }
+        Spacer(Modifier.height(12.dp))
+
+        // ========== TELÉFONO + SELECTOR PAÍS ==========
+
+        val countries = listOf(
+            "+56 Chile", "+57 Colombia", "+51 Perú",
+            "+54 Argentina", "+52 México", "+1 USA", "+34 España"
+        )
+
+        var selectedCountry by remember { mutableStateOf(countries[0]) }
+
+        Row(Modifier.fillMaxWidth()) {
+            // Selector país
+            Box(
+                modifier = Modifier
+                    .width(120.dp)
+                    .border(
+                        2.dp,
+                        NeonPurple,
+                        MaterialTheme.shapes.small
+                    )
+                    .clickable { }
+                    .padding(12.dp)
+            ) {
+                var expanded by remember { mutableStateOf(false) }
+
+                Text(selectedCountry, color = NeonCyan)
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    countries.forEach { c ->
+                        DropdownMenuItem(
+                            text = { Text(c) },
+                            onClick = {
+                                selectedCountry = c
+                                vm.onChange("phone", c.split(" ")[0] + ui.phone)
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+
+                Spacer(
+                    Modifier
+                        .matchParentSize()
+                        .clickable { expanded = true }
+                )
+            }
+
+            Spacer(Modifier.width(8.dp))
+
+            NeoField(
+                label = "Teléfono",
+                value = ui.phone,
+                onChange = { vm.onChange("phone", it) },
+                modifier = Modifier.weight(1f)
+            )
+        }
 
         Spacer(Modifier.height(12.dp))
 
-        if (ui.error != null) {
-            Text(ui.error!!, color = Color(0xFFFF6B6B))
-            Spacer(Modifier.height(8.dp))
-        }
-        if (ui.success != null) {
-            Text(ui.success!!, color = Color(0xFF39FF14))
-            Spacer(Modifier.height(8.dp))
-        }
-
-        // Nombre
-        OutlinedTextField(
-            value = ui.nombre,
-            onValueChange = { vm.onChange("nombre", it) },
-            label = { Text("Nombre completo") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            colors = textFieldColors()
+        // ========== DIRECCIÓN + GPS ==========
+        NeoField(
+            label = "Dirección",
+            value = ui.address,
+            onChange = { vm.onChange("address", it) }
         )
-
         Spacer(Modifier.height(8.dp))
 
-        // Email
-        OutlinedTextField(
-            value = ui.email,
-            onValueChange = { vm.onChange("email", it) },
-            label = { Text("Correo electrónico") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            colors = textFieldColors()
-        )
+        Button(
+            onClick = {
+                permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
 
-        Spacer(Modifier.height(8.dp))
+                if (gpsAllowed) {
+                    fusedLocation.lastLocation.addOnSuccessListener { loc ->
+                        if (loc != null) {
+                            val geocoder = Geocoder(ctx, Locale.getDefault())
+                            val addr = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
 
-        // --- SECCIÓN DE FECHA DE NACIMIENTO ---
-        val context = LocalContext.current
-        val maxDateCalendar = Calendar.getInstance().apply {
-            add(Calendar.YEAR, -18)
-        }
-        val datePickerDialog = DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                val monthFormatted = (month + 1).toString().padStart(2, '0')
-                val dayFormatted = dayOfMonth.toString().padStart(2, '0')
-                vm.onChange("fechaNacimiento", "$year-$monthFormatted-$dayFormatted")
-                vm.onBlur("fechaNacimiento")
+                            val text = if (!addr.isNullOrEmpty()) {
+                                "${addr[0].thoroughfare ?: ""} ${addr[0].subThoroughfare ?: ""}, ${addr[0].locality}"
+                            } else {
+                                "Lat: ${loc.latitude}, Lon: ${loc.longitude}"
+                            }
+
+                            vm.onChange("address", text)
+                            beep.start()
+                        }
+                    }
+                }
             },
-            maxDateCalendar.get(Calendar.YEAR),
-            maxDateCalendar.get(Calendar.MONTH),
-            maxDateCalendar.get(Calendar.DAY_OF_MONTH)
-        ).apply {
-            datePicker.maxDate = maxDateCalendar.timeInMillis
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                    shape = MaterialTheme.shapes.extraSmall
-                )
-                .clickable { datePickerDialog.show() }
-                .padding(horizontal = 16.dp),
-            contentAlignment = Alignment.CenterStart
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = NeonPurple)
         ) {
-            Text(
-                text = if (ui.fechaNacimiento.isBlank()) "Fecha de nacimiento (Debes ser +18)" else ui.fechaNacimiento,
-                color = if (ui.fechaNacimiento.isBlank()) Color(0xFFD3D3D3) else Color.White
-            )
+            Text("Obtener Dirección GPS", color = Color.Black)
         }
-        // --- FIN DE LA SECCIÓN DE FECHA ---
-
-        Spacer(Modifier.height(8.dp))
-
-        // Password
-        OutlinedTextField(
-            value = ui.password,
-            onValueChange = { vm.onChange("password", it) },
-            label = { Text("Contraseña") },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
-            supportingText = { Text("Mín. 8 caráct., 1 número y 1 símbolo", color = Color(0xFFD3D3D3)) },
-            colors = textFieldColors()
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        // Confirmación
-        OutlinedTextField(
-            value = ui.password2,
-            onValueChange = { vm.onChange("password2", it) },
-            label = { Text("Confirmar contraseña") },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
-            colors = textFieldColors()
-        )
 
         Spacer(Modifier.height(16.dp))
 
+        // PASSWORDS
+        PasswordNeo("Contraseña", ui.password) { vm.onChange("password", it) }
+        Spacer(Modifier.height(12.dp))
+
+        PasswordNeo("Confirmar contraseña", ui.password2) { vm.onChange("password2", it) }
+        Spacer(Modifier.height(16.dp))
+
+        // BOTÓN CREAR CUENTA
         Button(
             onClick = { vm.submit() },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF39FF14),
+            colors = ButtonDefaults.buttonColors(containerColor = NeonCyan)
+        ) {
+            Text("Crear Cuenta", color = Color.Black)
+        }
+
+        // SNACKBAR NEON
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.padding(8.dp)
+        ) { data ->
+            Snackbar(
+                snackbarData = data,
+                containerColor = NeonCyan,
                 contentColor = Color.Black
             )
-        ) {
-            Text("Registrarse")
         }
     }
 }
 
 @Composable
-private fun textFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
-    disabledTextColor = Color.White.copy(alpha = 0.5f),
-    errorTextColor = Color.White,
-    focusedBorderColor = Color(0xFF39FF14),
-    unfocusedBorderColor = Color(0xFF333333),
-    errorBorderColor = Color(0xFFFF6B6B),
-    focusedLabelColor = Color(0xFF39FF14),
-    unfocusedLabelColor = Color(0xFFD3D3D3),
-    cursorColor = Color(0xFF39FF14),
-    focusedContainerColor = Color.Transparent,
-    unfocusedContainerColor = Color.Transparent,
-    disabledContainerColor = Color.Transparent,
-    errorContainerColor = Color.Transparent
-)
+fun NeoField(label: String, value: String, onChange: (String) -> Unit, modifier: Modifier = Modifier.fillMaxWidth()) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        modifier = modifier,
+        label = { Text(label, color = NeonPurple) },
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = NeonCyan,
+            unfocusedBorderColor = NeonPurple.copy(alpha = 0.4f),
+            focusedLabelColor = NeonCyan,
+            unfocusedLabelColor = NeonPurple.copy(alpha = 0.5f),
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            cursorColor = NeonCyan
+        )
+    )
+}
+
+@Composable
+fun PasswordNeo(label: String, value: String, onChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(label, color = NeonPurple) },
+        visualTransformation = PasswordVisualTransformation(),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = NeonCyan,
+            unfocusedBorderColor = NeonPurple.copy(alpha = 0.4f),
+            focusedLabelColor = NeonCyan,
+            unfocusedLabelColor = NeonPurple.copy(alpha = 0.5f),
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            cursorColor = NeonCyan
+        )
+    )
+}
+
+@Composable
+fun BirthDateField(value: String, onSelect: (String) -> Unit) {
+    val ctx = LocalContext.current
+
+    val maxDate = Calendar.getInstance().apply { add(Calendar.YEAR, -18) }
+
+    val dialog = DatePickerDialog(
+        ctx,
+        { _, y, m, d ->
+            val month = (m + 1).toString().padStart(2, '0')
+            val day = d.toString().padStart(2, '0')
+            onSelect("$y-$month-$day")
+        },
+        maxDate.get(Calendar.YEAR),
+        maxDate.get(Calendar.MONTH),
+        maxDate.get(Calendar.DAY_OF_MONTH)
+    ).apply {
+        datePicker.maxDate = maxDate.timeInMillis
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(2.dp, NeonCyan, MaterialTheme.shapes.small)
+            .clickable { dialog.show() }
+            .padding(16.dp)
+    ) {
+        Text(
+            text = if (value.isBlank()) "Fecha de nacimiento (+18)" else value,
+            color = if (value.isBlank()) NeonPurple.copy(alpha = 0.7f) else NeonCyan
+        )
+    }
+}

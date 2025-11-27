@@ -57,9 +57,10 @@ class CartRepository @Inject constructor(
     }
 
     // -----------------------------------------------------------------
-    // 5. LIMPIAR CARRITO COMPLETO (DELETE)
+    // 5. LIMPIAR CARRITO COMPLETO (DELETE) / Borrar todos los ítems
+    // Usado por CartViewModel.clearCart() después de un pago exitoso.
     // -----------------------------------------------------------------
-    suspend fun clearCart(userId: Long): Result<CartResponse> {
+    suspend fun clearAllItems(userId: Long): Result<CartResponse> {
         return runCatching {
             cartApi.clearCart(userId)
         }

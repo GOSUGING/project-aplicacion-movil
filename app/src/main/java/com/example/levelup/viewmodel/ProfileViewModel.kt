@@ -6,17 +6,17 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.levelup.data.UserRepository
+import com.example.levelup.data.session.SessionManager
 import com.example.levelup.data.session.UserSession
-import com.example.levelup.data.session.SessionManager     // ← ESTE ES EL BUENO
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
-// Estado de la UI del perfil
+// Estado completo del UI
 data class ProfileUiState(
     val name: String = "",
     val email: String = "",
+    val role: String = "",          // 👈 AGREGADO
     val address: String = "",
     val phone: String = "",
     val newsletter: Boolean = false,
@@ -28,9 +28,8 @@ data class ProfileUiState(
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val repo: UserRepository,
-    private val sessionManager: SessionManager    // ← CORRECTO
+    private val sessionManager: SessionManager
 ) : ViewModel() {
-
 
     var uiState by mutableStateOf(ProfileUiState())
         private set
@@ -47,7 +46,8 @@ class ProfileViewModel @Inject constructor(
                 uiState = uiState.copy(
                     name = user.name,
                     email = user.email,
-                    // Campos no incluidos en tu backend actual
+                    role = user.role ?: "USER",   // 👈 AGREGADO
+                    // Si tu backend no incluye estos campos, van vacíos
                     address = "",
                     phone = ""
                 )
@@ -55,7 +55,6 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    // Actualiza campos del formulario
     fun onFieldChange(field: String, value: Any) {
         uiState = when (field) {
             "name" -> uiState.copy(name = value as String)
@@ -68,7 +67,6 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    // Guarda el perfil — por ahora solo en sesión local
     fun saveProfile() {
         if (uiState.name.isBlank() || !uiState.email.contains("@")) {
             uiState = uiState.copy(errorMessage = "Nombre o email inválidos")
@@ -76,12 +74,13 @@ class ProfileViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-
             val current = sessionManager.getCurrentUser()
             if (current != null) {
+
                 val updatedUser = current.copy(
                     name = uiState.name,
-                    email = uiState.email
+                    email = uiState.email,
+                    role = uiState.role           // 👈 CONSERVA ROL
                 )
 
                 sessionManager.setCurrentUser(updatedUser)
@@ -94,9 +93,7 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    // Logout
     fun logout() {
         sessionManager.logout()
-
     }
 }

@@ -1,14 +1,14 @@
 package com.example.levelup
 
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState // Importación necesaria
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -20,87 +20,130 @@ import androidx.navigation.navArgument
 import com.example.levelup.ui.components.AppTopBar
 import com.example.levelup.ui.screens.*
 import com.example.levelup.viewmodel.CartViewModel
-import com.example.levelup.viewmodel.TopBarViewModel // Importación del ViewModel de la barra superior
+import com.example.levelup.viewmodel.TopBarViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
+// =======================================
+//   MAIN ACTIVITY
+// =======================================
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private var onPermissionResult: ((Boolean) -> Unit)? = null
+
+    // Launcher nativo de permisos (SIN accompanist)
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            onPermissionResult?.invoke(granted)
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
-            // Se asume que LevelUpTheme está definido y se usa aquí
-            // LevelUpTheme {
-            AppNavigation()
-            // }
+            CompositionLocalProvider(
+                LocalRequestPermission provides { permission: String, callback: (Boolean) -> Unit ->
+                    onPermissionResult = callback
+                    requestPermissionLauncher.launch(permission)
+                }
+            ) {
+                AppNavigation()
+            }
         }
     }
 }
 
+// Permiso disponible desde Compose sin accompanist
+val LocalRequestPermission =
+    compositionLocalOf<(String, (Boolean) -> Unit) -> Unit> {
+        error("Permission requester not initialized")
+    }
+
+
+// =======================================
+//   NAVEGACIÓN COMPLETA
+// =======================================
 @Composable
 fun AppNavigation() {
+
     val navController = rememberNavController()
+    val cartVM: CartViewModel = hiltViewModel()
+    val topBarVM: TopBarViewModel = hiltViewModel()
 
-    // Obtenemos los ViewModels necesarios para la barra superior
-    val cartViewModel: CartViewModel = hiltViewModel()
-    val topBarViewModel: TopBarViewModel = hiltViewModel() // Nuevo ViewModel
+    val currentUser by topBarVM.currentUser.collectAsState()
 
-    // Observamos el usuario actual
-    val currentUser by topBarViewModel.currentUser.collectAsState()
-
-    // Lógica para determinar si el usuario es administrador
-    val isAdmin = currentUser?.role?.equals("ADMIN", ignoreCase = true) ?: false
+    val isAdmin = currentUser?.role
+        ?.uppercase()
+        ?.contains("ADMIN") == true
 
     NavHost(
         navController = navController,
         startDestination = "home"
     ) {
 
-        // --- PANTALLAS PRINCIPALES CON LA BARRA DE NAVEGACIÓN ---
-
-        val screensWithTopBar = listOf("home", "categories", "products", "profile", "login", "register", "admin")
+        // ========================================
+        //  SCREENS QUE TIENEN TOPBAR
+        // ========================================
+        val screensWithTopBar = listOf(
+            "home", "categories", "products",
+            "profile", "admin_profile",
+            "login", "register", "admin"
+        )
 
         screensWithTopBar.forEach { screen ->
             composable(
                 route = if (screen == "products") "products?category={category}" else screen,
-                arguments = if (screen == "products") listOf(navArgument("category") {
-                    type = NavType.StringType
-                    nullable = true
-                }) else emptyList()
+                arguments =
+                    if (screen == "products")
+                        listOf(navArgument("category") {
+                            type = NavType.StringType
+                            nullable = true
+                        })
+                    else emptyList()
             ) { backStackEntry ->
 
                 Scaffold(
-                    // CORRECCIÓN CLAVE: Aplica padding para empujar el contenido debajo de la barra de estado
                     modifier = Modifier.statusBarsPadding(),
-
                     topBar = {
                         AppTopBar(
-                            cartViewModel = cartViewModel,
+                            cartViewModel = cartVM,
                             onCartClick = { navController.navigate("cart") },
                             onMenuProducts = { navController.navigate("products") },
                             onMenuCategories = { navController.navigate("categories") },
                             onMenuLogin = { navController.navigate("login") },
                             onMenuRegister = { navController.navigate("register") },
-                            onMenuProfile = { navController.navigate("profile") },
+
+                            onMenuProfile = {
+                                if (isAdmin) navController.navigate("admin_profile")
+                                else navController.navigate("profile")
+                            },
+
                             onTitleClick = { navController.navigate("home") },
 
-                            // --- PARÁMETROS NUEVOS AÑADIDOS ---
-                            onAdminClick = { navController.navigate("admin") }, // La acción de navegación
-                            isAdmin = isAdmin // El estado booleano observado
-                            // ------------------------------------
+                            onAdminClick = {
+                                if (isAdmin) navController.navigate("admin_profile")
+                            },
+
+                            isAdmin = isAdmin
                         )
                     },
                     containerColor = Color.Black
                 ) { padding ->
-                    // Decide qué pantalla mostrar basándose en la ruta
+
                     when (screen) {
+
                         "home" -> HomeScreen(
-                            paddingValues = padding,
-                            onNavigateToProducts = { navController.navigate("products") }
-                        )
-                        "categories" -> CategoriesScreen(
-                            paddingValues = padding,
-                            navController = navController
-                        )
+                            paddingValues = padding
+                        ) {
+                            navController.navigate("products")
+                        }
+
+                        "categories" ->
+                            CategoriesScreen(
+                                paddingValues = padding,
+                                navController = navController
+                            )
+
                         "products" -> {
                             val category = backStackEntry.arguments?.getString("category")
                             ProductsScreen(
@@ -109,25 +152,39 @@ fun AppNavigation() {
                                 category = category
                             )
                         }
+
                         "profile" -> ProfileScreen(
                             paddingValues = padding,
                             navController = navController
                         )
+
+                        "admin_profile" -> AdminProfileScreen(
+                            paddingValues = padding,
+                            navController = navController
+                        )
+
                         "login" -> LoginScreen(
                             paddingValues = padding,
-                            navController = navController,
+                            navController = navController
                         )
+
                         "register" -> RegisterScreen(
                             paddingValues = padding,
                             navController = navController
                         )
-                        "admin" -> AdminScreen(navController = navController)
+
+                        "admin" -> AdminProfileScreen(
+                            paddingValues = padding,
+                            navController = navController
+                        )
                     }
                 }
             }
         }
 
-        // --- PANTALLAS CON DISEÑO PROPIO (SIN LA BARRA DE NAVEGACIÓN PRINCIPAL) ---
+        // ========================================
+        //  SCREENS SIN TOPBAR
+        // ========================================
 
         composable("cart") {
             CartScreen(
@@ -144,13 +201,27 @@ fun AppNavigation() {
 
         composable("purchase_result") {
             PurchaseResultScreen(
-                onReturnHome = {
+                onBackHome = {
                     navController.navigate("home") {
                         popUpTo("home") { inclusive = true }
                     }
                 },
-                onViewBills = { /* Aquí iría la navegación a la pantalla de facturas */ }
+                onViewBills = { navController.navigate("payments_history") }
             )
+        }
+
+        composable("payments_history") {
+            PaymentsHistoryScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("admin_users") {
+            AdminUsersScreen(navController = navController)
+        }
+
+        composable("admin_products") {
+            AdminProductsScreen(navController = navController)
         }
     }
 }
