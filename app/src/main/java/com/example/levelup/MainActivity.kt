@@ -23,15 +23,11 @@ import com.example.levelup.viewmodel.CartViewModel
 import com.example.levelup.viewmodel.TopBarViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
-// =======================================
-//   MAIN ACTIVITY
-// =======================================
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private var onPermissionResult: ((Boolean) -> Unit)? = null
 
-    // Launcher nativo de permisos (SIN accompanist)
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             onPermissionResult?.invoke(granted)
@@ -53,16 +49,11 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Permiso disponible desde Compose sin accompanist
 val LocalRequestPermission =
     compositionLocalOf<(String, (Boolean) -> Unit) -> Unit> {
         error("Permission requester not initialized")
     }
 
-
-// =======================================
-//   NAVEGACIÓN COMPLETA
-// =======================================
 @Composable
 fun AppNavigation() {
 
@@ -72,18 +63,13 @@ fun AppNavigation() {
 
     val currentUser by topBarVM.currentUser.collectAsState()
 
-    val isAdmin = currentUser?.role
-        ?.uppercase()
-        ?.contains("ADMIN") == true
+    val isAdmin = currentUser?.role?.uppercase()?.contains("ADMIN") == true
 
     NavHost(
         navController = navController,
         startDestination = "home"
     ) {
 
-        // ========================================
-        //  SCREENS QUE TIENEN TOPBAR
-        // ========================================
         val screensWithTopBar = listOf(
             "home", "categories", "products",
             "profile", "admin_profile",
@@ -118,13 +104,7 @@ fun AppNavigation() {
                                 else navController.navigate("profile")
                             },
 
-                            onTitleClick = { navController.navigate("home") },
-
-                            onAdminClick = {
-                                if (isAdmin) navController.navigate("admin_profile")
-                            },
-
-                            isAdmin = isAdmin
+                            onTitleClick = { navController.navigate("home") }
                         )
                     },
                     containerColor = Color.Black
@@ -182,10 +162,7 @@ fun AppNavigation() {
             }
         }
 
-        // ========================================
-        //  SCREENS SIN TOPBAR
-        // ========================================
-
+        // SCREENS SIN TOPBAR
         composable("cart") {
             CartScreen(
                 navController = navController,

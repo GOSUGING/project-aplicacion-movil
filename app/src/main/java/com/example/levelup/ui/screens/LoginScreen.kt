@@ -1,147 +1,191 @@
 package com.example.levelup.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.levelup.viewmodel.LoginViewModel
 
-// --- FUNCIÓN DE UTILIDAD DE COLORES PRIVADA ---
-// Se define como 'private' para evitar el error de "Conflicting overloads"
+// PALETA NEÓN CYBERPUNK
+private val NeonGreen = Color(0xFF39FF14)
+private val NeonPink = Color(0xFFFF008A)
+private val CyberBlue = Color(0xFF00E5FF)
+private val DarkBg = Color(0xFF020202)
+
 @Composable
 private fun loginTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedTextColor = Color.White,
     unfocusedTextColor = Color.White,
-    cursorColor = Color(0xFF39FF14), // Verde Neón
+    cursorColor = NeonGreen,
 
-    focusedBorderColor = Color(0xFF39FF14),
-    unfocusedBorderColor = Color.Gray,
+    focusedBorderColor = NeonGreen,
+    unfocusedBorderColor = Color(0xFF444444),
 
-    focusedLabelColor = Color(0xFF39FF14),
+    focusedLabelColor = NeonGreen,
     unfocusedLabelColor = Color.Gray,
 
     focusedContainerColor = Color.Transparent,
     unfocusedContainerColor = Color.Transparent,
 )
-// ---------------------------------------------------------------------------------
 
 @Composable
 fun LoginScreen(
-    // La función se mantiene simple, solo necesita el NavController
     navController: NavController,
     paddingValues: PaddingValues
 ) {
     val vm: LoginViewModel = hiltViewModel()
     val ui by vm.ui.collectAsState()
 
-    // No necesitamos definir onLoginSuccess/onAdminLogin aquí porque el ViewModel
-    // nos dirá a dónde navegar mediante la callback onNavigate.
-
-    // --- Definición de la acción de navegación a Registro (Sí se necesita) ---
-    val onNavigateToRegister: () -> Unit = {
-        navController.navigate("register")
-    }
-    // -------------------------------------------------------------------------
+    val onNavigateToRegister = { navController.navigate("register") }
 
     Column(
         modifier = Modifier
             .padding(paddingValues)
             .fillMaxSize()
-            .background(Color.Black)
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xFF050010),
+                        Color(0xFF0A001A),
+                        Color(0xFF000000)
+                    )
+                )
+            )
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // --- TÍTULO CYBERPUNK ---
         Text(
-            text = "Iniciar Sesión",
-            style = MaterialTheme.typography.headlineLarge.copy(
+            text = "INICIAR SESIÓN",
+            style = TextStyle(
+                color = NeonGreen,
+                fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                shadow = Shadow(
+                    color = NeonGreen,
+                    blurRadius = 20f
+                )
             )
         )
 
         Spacer(Modifier.height(32.dp))
 
-        // --- CAMPO DE EMAIL ---
+        // --- EMAIL ---
         OutlinedTextField(
             value = ui.email,
             onValueChange = { vm.onChange("email", it) },
             label = { Text("Correo Electrónico", color = Color.White) },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            colors = loginTextFieldColors() // Uso de la función privada
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    width = 2.dp,
+                    color = NeonGreen.copy(alpha = 0.6f),
+                    shape = RoundedCornerShape(12.dp)
+                ),
+            colors = loginTextFieldColors()
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(20.dp))
 
-        // --- CAMPO DE CONTRASEÑA ---
+        // --- PASSWORD ---
         OutlinedTextField(
             value = ui.password,
             onValueChange = { vm.onChange("password", it) },
             label = { Text("Contraseña", color = Color.White) },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
             visualTransformation = PasswordVisualTransformation(),
-            colors = loginTextFieldColors() // Uso de la función privada
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    2.dp,
+                    CyberBlue.copy(alpha = 0.7f),
+                    RoundedCornerShape(12.dp)
+                ),
+            colors = loginTextFieldColors()
         )
 
         Spacer(Modifier.height(32.dp))
 
-        // Botón de Login
+        // --- BOTÓN LOGIN CYBERPUNK ---
         Button(
             onClick = {
-                // CORRECCIÓN CLAVE: Llamada a vm.login con UNA SOLA función 'onNavigate'
-                // que recibe la ruta (String) que el ViewModel devuelve.
                 vm.login(
                     onNavigate = { route ->
                         navController.navigate(route) {
-                            // Limpia la pila después de la navegación exitosa
                             popUpTo("home") { inclusive = true }
                         }
                     }
                 )
             },
             enabled = !ui.isLoading,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF39FF14),
-                contentColor = Color.Black
-            ),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
+                .height(55.dp)
+                .shadow(18.dp, RoundedCornerShape(14.dp)),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = NeonGreen,
+                contentColor = Color.Black
+            )
         ) {
             if (ui.isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(26.dp),
                     color = Color.Black,
                     strokeWidth = 2.dp
                 )
             } else {
-                Text("Ingresar", fontWeight = FontWeight.SemiBold)
+                Text(
+                    "INGRESAR",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
 
+        // --- MENSAJE DE ERROR ---
         if (ui.error != null) {
             Spacer(Modifier.height(16.dp))
-            Text(ui.error!!, color = MaterialTheme.colorScheme.error)
+            Text(
+                ui.error!!,
+                color = NeonPink,
+                style = TextStyle(
+                    shadow = Shadow(NeonPink, blurRadius = 12f)
+                )
+            )
         }
 
         Spacer(Modifier.height(24.dp))
 
-        // Botón para ir a Registro
+        // --- BOTÓN REGISTRO CYBER ---
         TextButton(onClick = onNavigateToRegister) {
-            Text("¿No tienes cuenta? Regístrate", color = Color(0xFF39FF14), fontWeight = FontWeight.Medium)
+            Text(
+                "¿No tienes cuenta? Regístrate",
+                color = CyberBlue,
+                fontWeight = FontWeight.Medium,
+                style = TextStyle(
+                    shadow = Shadow(CyberBlue, blurRadius = 12f)
+                )
+            )
         }
     }
 }

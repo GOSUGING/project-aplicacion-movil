@@ -49,9 +49,7 @@ fun AppTopBar(
     onMenuLogin: () -> Unit,
     onMenuRegister: () -> Unit,
     onMenuProfile: () -> Unit,
-    onTitleClick: () -> Unit,
-    onAdminClick: () -> Unit,
-    isAdmin: Boolean
+    onTitleClick: () -> Unit
 ) {
     val topBarVM: TopBarViewModel = hiltViewModel()
     val currentUser by topBarVM.currentUser.collectAsState()
@@ -110,14 +108,7 @@ fun AppTopBar(
                         )
                     }
 
-                    if (isAdmin) {
-                        Divider(color = NeonPurple.copy(alpha = 0.4f))
-
-                        DropdownMenuItem(
-                            text = { RowWithIcon("Panel Admin", Icons.Default.AdminPanelSettings, NeonOrange) },
-                            onClick = { menuOpen = false; onAdminClick() }
-                        )
-                    }
+                    // ❌ ADMIN REMOVIDO
                 }
             }
 
@@ -141,7 +132,7 @@ fun AppTopBar(
             )
 
             // =========================
-            // PERFIL
+            // PERFIL ICONO NEÓN
             // =========================
             IconButton(
                 onClick = {
