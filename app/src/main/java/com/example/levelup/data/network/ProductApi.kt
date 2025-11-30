@@ -1,0 +1,21 @@
+package com.example.levelup.data.network
+
+import com.example.levelup.data.dto.ProductDTO
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.PUT
+import retrofit2.http.Path
+import retrofit2.http.Query
+
+
+interface ProductApi {
+
+    @GET("api/v1/products")
+    suspend fun getProducts(): List<ProductDTO>
+
+    @PUT("api/v1/products/{id}")
+    suspend fun updateProduct(
+        @Path("id") id: Long,
+        @Body product: ProductDTO
+    ): ProductDTO
+}
