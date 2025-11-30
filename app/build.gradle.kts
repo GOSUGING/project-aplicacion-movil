@@ -1,9 +1,10 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.compose")   // Compose Compiler para Kotlin 2.x
-    id("com.google.devtools.ksp")              // KSP obligatorio
-    id("com.google.dagger.hilt.android")       // Hilt
+    id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
+    id("jacoco")
 }
 
 android {
@@ -29,13 +30,10 @@ android {
         }
     }
 
-    // Jetpack Compose habilitado
+    // Jetpack Compose
     buildFeatures {
         compose = true
     }
-
-    // ❌ IMPORTANTE: NO USAR composeOptions EN KOTLIN 2.1
-    // composeOptions { }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -45,96 +43,108 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    // Evita errores por archivos META-INF duplicados en dependencias (LICENSE.md, etc.)
+    packaging {
+        resources {
+            excludes += "META-INF/LICENSE.md"
+            excludes += "META-INF/LICENSE-notice.md"
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/AL2.0"
+            excludes += "META-INF/LGPL2.1"
+        }
+    }
 }
 
 dependencies {
+    // ------------------------------------------------
+    // Use the Compose BOM from version catalog (libs.versions.toml)
+    // ------------------------------------------------
+    implementation(platform(libs.androidx.compose.bom))
 
-    // AndroidX
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
-    implementation("androidx.activity:activity-compose:1.9.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.2")
+    // AndroidX core & lifecycle
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-    // Jetpack Compose BOM
-    implementation(platform("androidx.compose:compose-bom:2024.10.01"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation(libs.gms.play.services.maps)
+    // Compose (managed by BOM)
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.extended)
+
+    // Optional compose artifacts present in toml
     implementation(libs.androidx.compose.ui.text)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.ads.mobile.sdk)
-    implementation(libs.material)
-    implementation("androidx.compose.material:material-icons-extended:1.6.0")
-    implementation("io.coil-kt:coil-compose:2.6.0")
     implementation(libs.androidx.compose.animation.core)
-    implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.geometry)
-    implementation(libs.play.services.location)
-
-    // Compose Tooling Debug
-    debugImplementation("androidx.compose.ui:ui-tooling")
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.51.1")
-    ksp("com.google.dagger:hilt-compiler:2.51.1")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
 
-    // Retrofit + Gson + OkHttp
+    // Retrofit / OkHttp
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-    // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    // Coil
+    implementation(libs.coil.compose)
 
-    // Room + KSP (OBLIGATORIO para que tu DbModule funcione)
-    val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
+    // Room + KSP
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
-    implementation("io.coil-kt:coil-compose:2.6.0")
+    // Play Services (maps, location) — from version catalog
+    implementation(libs.play.services.maps)
+    implementation(libs.play.services.location)
 
+    // Debug tooling for Compose
+    debugImplementation(libs.androidx.ui.tooling)
 
-    // Testing
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    // ------------------------------------------------
+    // TESTING - UNIT TESTS (src/test)
+    // ------------------------------------------------
+    // Unify JUnit 5 using BOM so transitives don't bring old 5.8.x artifacts
+    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
 
-    //Kotest
+    // Kotest (runner + assertions) — keep the versions you used
     testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
     testImplementation("io.kotest:kotest-assertions-core:5.8.0")
 
-    //JUnit 5
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    // Coroutines test
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
 
-    //MockK
+    // MockK for unit tests
     testImplementation("io.mockk:mockk:1.13.10")
 
-    // Compose UI Test
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.2")
-    debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.2")
+    // ------------------------------------------------
+    // INSTRUMENTED / ANDROID TESTS (androidTest)
+    // ------------------------------------------------
+    androidTestImplementation(libs.androidx.junit)          // androidx.test.ext:junit
+    androidTestImplementation(libs.androidx.espresso.core) // espresso-core
 
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
-    testImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    // Apply Compose BOM also for androidTest so ui-test-junit4 resolves without explicit version
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    // MockK for instrumented tests
+    androidTestImplementation("io.mockk:mockk-android:1.13.10")
+    androidTestImplementation("io.mockk:mockk-agent:1.13.10")
 }
 
+// Use JUnit Platform for unit tests (JUnit 5)
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+}
+
+// JaCoCo configuration (left as you had it before if you want to keep)
+jacoco {
+    toolVersion = "0.8.10"
 }

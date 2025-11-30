@@ -24,6 +24,7 @@ import coil.compose.AsyncImage
 import com.example.levelup.model.CartItem
 import com.example.levelup.viewmodel.CartViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.platform.testTag
 
 
 // PALETA CYBERPUNK
@@ -104,7 +105,9 @@ fun CartScreen(
 @Composable
 fun LoadingCart() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("cart_loading"),
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
@@ -117,7 +120,9 @@ fun LoadingCart() {
 @Composable
 fun ErrorCart(msg: String) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("cart_error"),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -133,7 +138,9 @@ fun ErrorCart(msg: String) {
 @Composable
 fun EmptyCart() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("cart_empty"),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -154,7 +161,7 @@ fun CartListContent(
 ) {
     val subtotal = items.sumOf { it.price * it.qty }
 
-    Column {
+    Column(modifier = Modifier.testTag("cart_list")) {
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -248,7 +255,9 @@ fun CartItemCard(
             Button(
                 onClick = onDelete,
                 colors = ButtonDefaults.buttonColors(containerColor = NeonPink),
-                modifier = Modifier.shadow(8.dp, RoundedCornerShape(8.dp))
+                modifier = Modifier
+                    .shadow(8.dp, RoundedCornerShape(8.dp))
+                    .testTag("delete_btn_${item.id}")
             ) {
                 Text("X", color = Color.Black)
             }

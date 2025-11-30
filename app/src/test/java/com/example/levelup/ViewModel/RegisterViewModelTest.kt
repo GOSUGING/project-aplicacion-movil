@@ -1,4 +1,4 @@
-package com.example.levelup.MethodTest
+package com.example.levelup.ViewModel
 
 import com.example.levelup.data.dto.RegisterResponse
 import com.example.levelup.data.network.AuthApi

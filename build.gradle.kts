@@ -5,7 +5,7 @@ plugins {
     id("org.jetbrains.kotlin.android") version "2.1.0" apply false
 
     // 🔥 KSP compatible
-    id("com.google.devtools.ksp") version "2.0.20-1.0.24" apply false
+    id("com.google.devtools.ksp") version "2.1.0-1.0.29" apply false
 
     // 🔥 Hilt
     id("com.google.dagger.hilt.android") version "2.51" apply false
