@@ -16,7 +16,7 @@
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="Tests in 'com.example.levelup.UiScreens'">
+      <SelectionState runConfigName="Tests in 'com.example.levelup.uiscreens'">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
