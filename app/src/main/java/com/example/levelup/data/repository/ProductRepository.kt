@@ -16,4 +16,6 @@ class ProductRepository @Inject constructor(
     suspend fun updateProduct(product: ProductDTO): ProductDTO {
         return api.updateProduct(product.id, product)
     }
+
+    suspend fun getProductById(id: Long): ProductDTO = api.getProduct(id)
 }

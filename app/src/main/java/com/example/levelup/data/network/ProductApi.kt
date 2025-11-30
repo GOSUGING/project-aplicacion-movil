@@ -18,4 +18,8 @@ interface ProductApi {
         @Path("id") id: Long,
         @Body product: ProductDTO
     ): ProductDTO
+
+
+    @GET("api/v1/products/{id}")
+    suspend fun getProduct(@Path("id") id: Long): ProductDTO
 }

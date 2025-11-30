@@ -72,6 +72,7 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.geometry)
     implementation(libs.play.services.location)
+    implementation(libs.androidx.compose.foundation)
 
     // Compose Tooling Debug
     debugImplementation("androidx.compose.ui:ui-tooling")

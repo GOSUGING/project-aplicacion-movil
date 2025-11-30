@@ -31,7 +31,7 @@ import com.example.levelup.data.dto.ProductDTO
 import com.example.levelup.viewmodel.CartViewModel
 import com.example.levelup.viewmodel.ProductViewModel
 
-// Paleta de colores cyberpunk
+// Paleta Neon
 private val NeonGreen = Color(0xFF39FF14)
 private val NeonCyan = Color(0xFF00E5FF)
 private val NeonMagenta = Color(0xFFFF00FF)
@@ -47,12 +47,13 @@ fun ProductsScreen(
     val cartVM: CartViewModel = hiltViewModel()
     val ui = vm.ui.collectAsState()
 
+    // Cargar productos
     LaunchedEffect(Unit) { vm.loadProducts() }
 
+    // Snackbar neon
     val snackbarHostState = remember { SnackbarHostState() }
     var snackbarMessage by remember { mutableStateOf<String?>(null) }
 
-    // MOSTRAR SNACKBAR CUANDO SE ACTIVA snackbarMessage
     LaunchedEffect(snackbarMessage) {
         snackbarMessage?.let {
             snackbarHostState.showSnackbar(it)
@@ -62,16 +63,24 @@ fun ProductsScreen(
 
     val products = ui.value.products
 
+    // Filtrar por categoría
     val productsToShow = remember(category, products) {
-        if (category.isNullOrBlank()) products
-        else products.filter { it.category.equals(category, ignoreCase = true) }
+        if (!category.isNullOrBlank()) {
+            products.filter { it.category.equals(category, ignoreCase = true) }
+        } else {
+            products
+        }
     }
 
+
+    // Glow animado del título
     val glow by animateFloatAsState(
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            tween(1600), RepeatMode.Reverse
-        ), label = ""
+            tween(1600),
+            RepeatMode.Reverse
+        ),
+        label = ""
     )
 
     val title = category?.replaceFirstChar { it.uppercase() } ?: "Todos los Productos"
@@ -84,20 +93,27 @@ fun ProductsScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
+        // TÍTULO NEON
         Text(
             text = title,
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = NeonGreen,
             style = TextStyle(
-                shadow = Shadow(NeonGreen.copy(alpha = glow), blurRadius = 28f)
+                shadow = Shadow(
+                    color = NeonGreen.copy(alpha = glow),
+                    blurRadius = 28f
+                )
             ),
             modifier = Modifier.padding(16.dp)
         )
 
         when {
             ui.value.isLoading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     CircularProgressIndicator(color = NeonCyan)
                 }
             }
@@ -117,13 +133,12 @@ fun ProductsScreen(
                         ProductCard(
                             product = product,
                             onAddToCart = {
-
                                 cartVM.addProduct(product, 1)
-
-                                // ACTIVA EL SNACKBAR DESDE COMPOSE
                                 snackbarMessage = "${product.name} agregado 🎧"
                             },
-                            onClick = {}
+                            onClick = {
+                                navController.navigate("productDetail/${product.id}")
+                            }
                         )
                     }
                 }
@@ -157,22 +172,17 @@ fun ProductCard(
     val context = LocalContext.current
     val mediaPlayer = remember { MediaPlayer.create(context, R.raw.cart_add) }
 
-    // Animaciones
     val scale = remember { Animatable(1f) }
     val glow = remember { Animatable(0f) }
-
-    // Este flag PERMITE activar la animación desde el onClick
     var animateNow by remember { mutableStateOf(false) }
 
-    // Ejecutamos la animación solo cuando animateNow cambia a true
     LaunchedEffect(animateNow) {
         if (animateNow) {
             scale.animateTo(1.1f, tween(120))
             glow.animateTo(1f, tween(100))
             scale.animateTo(1f, tween(150))
             glow.animateTo(0f, tween(120))
-
-            animateNow = false // reset
+            animateNow = false
         }
     }
 
@@ -213,19 +223,25 @@ fun ProductCard(
 
             Spacer(Modifier.height(8.dp))
 
-            Text(product.name, fontWeight = FontWeight.Bold, color = NeonGreen, fontSize = 18.sp)
-            Text("$${product.price}", color = NeonCyan, fontSize = 16.sp)
+            Text(
+                product.name,
+                fontWeight = FontWeight.Bold,
+                color = NeonGreen,
+                fontSize = 18.sp
+            )
+
+            Text(
+                "$${product.price}",
+                color = NeonCyan,
+                fontSize = 16.sp
+            )
 
             Spacer(Modifier.height(8.dp))
 
             Button(
                 onClick = {
                     onAddToCart()
-
-                    // sonido
                     mediaPlayer.start()
-
-                    // activar animación pop
                     animateNow = true
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -236,4 +252,3 @@ fun ProductCard(
         }
     }
 }
-
