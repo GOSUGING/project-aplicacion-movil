@@ -7,7 +7,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.rememberNavController
-import com.example.levelup.data.ProductRepository
+import com.example.levelup.data.repository.ProductRepository
 import com.example.levelup.data.dto.ProductDTO
 import com.example.levelup.data.network.ProductApi
 import com.example.levelup.viewmodel.AdminViewModel

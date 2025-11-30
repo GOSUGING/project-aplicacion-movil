@@ -5,7 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.navigation.compose.rememberNavController
-import com.example.levelup.data.ProductRepository
+import com.example.levelup.data.repository.ProductRepository
 import com.example.levelup.data.network.ProductApi
 import com.example.levelup.viewmodel.AdminViewModel
 import io.mockk.coEvery
