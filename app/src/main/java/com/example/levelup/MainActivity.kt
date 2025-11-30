@@ -5,7 +5,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
@@ -62,13 +61,16 @@ fun AppNavigation() {
     val topBarVM: TopBarViewModel = hiltViewModel()
 
     val currentUser by topBarVM.currentUser.collectAsState()
-
     val isAdmin = currentUser?.role?.uppercase()?.contains("ADMIN") == true
 
     NavHost(
         navController = navController,
         startDestination = "home"
     ) {
+
+        //-----------------------------------------------------------------------
+        // SCREENS CON TOPBAR
+        //-----------------------------------------------------------------------
 
         val screensWithTopBar = listOf(
             "home", "categories", "products",
@@ -77,6 +79,7 @@ fun AppNavigation() {
         )
 
         screensWithTopBar.forEach { screen ->
+
             composable(
                 route = if (screen == "products") "products?category={category}" else screen,
                 arguments =
@@ -162,7 +165,10 @@ fun AppNavigation() {
             }
         }
 
+        //-----------------------------------------------------------------------
         // SCREENS SIN TOPBAR
+        //-----------------------------------------------------------------------
+
         composable("cart") {
             CartScreen(
                 navController = navController,
@@ -199,6 +205,22 @@ fun AppNavigation() {
 
         composable("admin_products") {
             AdminProductsScreen(navController = navController)
+        }
+
+
+
+        composable(
+            route = "productDetail/{id}",
+            arguments = listOf(
+                navArgument("id") { type = NavType.LongType }
+            )
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments!!.getLong("id")
+
+            ProductDetailScreen(
+                productId = id,
+                navController = navController
+            )
         }
     }
 }
