@@ -1,4 +1,4 @@
-package com.example.levelup.data
+package com.example.levelup.data.repository
 
 import com.example.levelup.data.dto.ProductDTO
 import com.example.levelup.data.network.ProductApi

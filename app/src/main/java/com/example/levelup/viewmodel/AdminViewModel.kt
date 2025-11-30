@@ -2,9 +2,9 @@ package com.example.levelup.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.levelup.data.ProductRepository
 import com.example.levelup.data.dto.ProductDTO
 import com.example.levelup.data.network.ProductApi
+import com.example.levelup.data.repository.ProductRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

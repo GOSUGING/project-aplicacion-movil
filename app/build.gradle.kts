@@ -137,6 +137,7 @@ dependencies {
     // MockK for instrumented tests
     androidTestImplementation("io.mockk:mockk-android:1.13.10")
     androidTestImplementation("io.mockk:mockk-agent:1.13.10")
+    testImplementation(kotlin("test"))
 }
 
 // Use JUnit Platform for unit tests (JUnit 5)

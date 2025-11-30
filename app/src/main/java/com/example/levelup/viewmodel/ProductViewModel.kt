@@ -2,7 +2,7 @@ package com.example.levelup.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.levelup.data.ProductRepository
+import com.example.levelup.data.repository.ProductRepository
 import com.example.levelup.data.dto.ProductDTO
 import com.example.levelup.viewmodel.state.ProductUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
