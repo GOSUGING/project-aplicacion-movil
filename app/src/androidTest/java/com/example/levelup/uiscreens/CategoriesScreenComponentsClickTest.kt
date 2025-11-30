@@ -1,11 +1,10 @@
-package com.example.levelup.UiScreens
+package com.example.levelup.uiscreens
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import androidx.navigation.compose.rememberNavController
 import com.example.levelup.ui.screens.CategoriesScreen
 import org.junit.Rule

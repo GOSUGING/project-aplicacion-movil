@@ -1,4 +1,4 @@
-package com.example.levelup.UiScreens
+package com.example.levelup.uiscreens
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
@@ -12,7 +12,6 @@ import com.example.levelup.data.dto.ProductDTO
 import com.example.levelup.data.network.ProductApi
 import com.example.levelup.viewmodel.AdminViewModel
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher

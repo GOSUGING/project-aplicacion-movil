@@ -1,4 +1,4 @@
-package com.example.levelup.UiScreens
+package com.example.levelup.uiscreens
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.PaddingValues
