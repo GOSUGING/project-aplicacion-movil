@@ -87,10 +87,7 @@ Construida con **Kotlin + Jetpack Compose**, estilo **cyberpunk**, e integrada a
 - **Coroutines**
 
 ### ☁️ Backend (AWS)
-- **ECS + Fargate**
-- **ALB**
-- **ECR**
-- **RDS (MySQL/MariaDB)**
+- **EC2
 - **S3 (Imágenes)**
 
 ---
