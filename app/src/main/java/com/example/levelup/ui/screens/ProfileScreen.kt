@@ -18,6 +18,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.levelup.viewmodel.ProfileViewModel
 import kotlinx.coroutines.delay
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import coil.compose.AsyncImage
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import android.net.Uri
+import java.io.File
+import androidx.core.content.FileProvider
+import coil.request.ImageRequest
+import coil.request.CachePolicy
 
 @Composable
 fun ProfileScreen(
@@ -78,6 +89,125 @@ fun ProfileScreen(
         )
 
         Spacer(Modifier.height(16.dp))
+
+        val context = androidx.compose.ui.platform.LocalContext.current
+        var profileImageFile by remember { mutableStateOf<File?>(null) }
+        var profileImageVersion by remember { mutableStateOf(0L) }
+
+        LaunchedEffect(Unit) {
+            val existing = File(context.filesDir, "profile_image.jpg")
+            if (existing.exists()) profileImageFile = existing
+        }
+
+        val pickImageLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri: Uri? ->
+            uri?.let {
+                val dest = File(context.filesDir, "profile_image.jpg")
+                context.contentResolver.openInputStream(it)?.use { input ->
+                    dest.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                profileImageFile = dest
+                profileImageVersion++
+            }
+        }
+
+        val takePictureLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.TakePicture()
+        ) { success: Boolean ->
+            if (success) {
+                val captured = File(context.cacheDir, "profile_capture.jpg")
+                val dest = File(context.filesDir, "profile_image.jpg")
+                if (captured.exists()) {
+                    captured.inputStream().use { input ->
+                        dest.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    profileImageFile = dest
+                    profileImageVersion++
+                }
+            }
+        }
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
+            border = BorderStroke(1.dp, Color.DarkGray)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (profileImageFile != null) {
+                    val request = ImageRequest.Builder(context)
+                        .data(profileImageFile)
+                        .diskCachePolicy(CachePolicy.DISABLED)
+                        .memoryCachePolicy(CachePolicy.DISABLED)
+                        .setParameter("version", profileImageVersion, memoryCacheKey = profileImageVersion.toString())
+                        .build()
+                    AsyncImage(
+                        model = request,
+                        contentDescription = "Foto de perfil",
+                        modifier = Modifier
+                            .size(96.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = null,
+                        tint = Color.Gray,
+                        modifier = Modifier.size(96.dp)
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(
+                        text = "Foto de perfil",
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "Agrega una imagen local que se guardará en el dispositivo.",
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { pickImageLauncher.launch("image/*") }) {
+                            Icon(Icons.Default.Image, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Galería")
+                        }
+                        OutlinedButton(onClick = {
+                            val temp = File(context.cacheDir, "profile_capture.jpg")
+                            if (!temp.exists()) temp.createNewFile()
+                            val uri = FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.fileprovider",
+                                temp
+                            )
+                            takePictureLauncher.launch(uri)
+                        }) {
+                            Icon(Icons.Default.PhotoCamera, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Cámara")
+                        }
+                    }
+                }
+            }
+        }
 
         successMessage?.let {
             Text(it, color = Color(0xFF39FF14), fontWeight = FontWeight.Bold)
