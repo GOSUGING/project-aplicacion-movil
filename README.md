@@ -51,13 +51,14 @@ Construida con **Kotlin + Jetpack Compose**, estilo **cyberpunk**, e integrada a
 - **DI con Hilt**: inyección de dependencias centralizada.
 
 ### 🗂 Paquetes
+```
 /ui
 /viewmodel
 /data/dto
 /data/repository
 /data/network
 /navigation
-/utils
+```
 
 ---
 
@@ -70,7 +71,6 @@ Construida con **Kotlin + Jetpack Compose**, estilo **cyberpunk**, e integrada a
 | Cart Service | 8082 | Gestión del carrito |
 | Coupons Service | 8084 | Validación de cupones |
 | Payments Service | 8083 | Flujo de pago completo |
-| Bills Service | 8086 | Futuro historial de compras |
 
 ---
 
@@ -83,7 +83,7 @@ Construida con **Kotlin + Jetpack Compose**, estilo **cyberpunk**, e integrada a
 - **Navigation Compose**
 - **Hilt (DI)**
 - **Retrofit + OkHttp**
-- **Coil** (carga de imágenes)
+- **Coil**
 - **Coroutines**
 
 ### ☁️ Backend (AWS)
@@ -94,3 +94,58 @@ Construida con **Kotlin + Jetpack Compose**, estilo **cyberpunk**, e integrada a
 - **S3 (Imágenes)**
 
 ---
+
+## ▶️ Cómo Ejecutar la App
+
+### 📌 **Requisitos**
+- **Android Studio Flamingo o superior**
+- **API Level mínimo requerido: 32 (Android 12)**  
+  *(La app requiere API 32 para ejecutar correctamente con las dependencias actuales de Jetpack Compose.)*
+
+### 📜 Pasos
+
+1. Clonar el repositorio:
+```bash
+git clone https://github.com/tu-repo/project-aplicacion-movil.git
+```
+
+2. Abrir en Android Studio.
+
+3. Crear archivo `local.properties` si no existe:
+```
+sdk.dir=C:\Users\TU_USUARIO\AppData\Local\Android\Sdk
+```
+
+4. Configurar variables de entorno en `BuildConfig` o `.env`:
+```kotlin
+const val AUTH_BASE_URL = "http://56.228.34.53:8081/api/auth"
+const val PRODUCTS_BASE_URL = "http://56.228.34.53:8085/api/v1/products"
+```
+
+5. Ejecutar la app en un emulador o dispositivo en **API 32+**.
+
+---
+
+## 🧪 Testing
+- Compose Test Rule para pantallas.
+- Pruebas unitarias de ViewModels.
+- Validación de estados.
+
+---
+
+## 📌 Pendientes / En Desarrollo
+- Historial de pedidos.
+- Perfil del usuario.
+- Carrito offline.
+- Notificaciones push.
+
+---
+
+## 👨‍💻 Autor
+**CHAPSUI / Level-Up Gamer**  
+Estudiante de Programación — Chile 🇨🇱  
+
+---
+
+## 📄 Licencia
+Proyecto bajo licencia **MIT**.
