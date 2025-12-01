@@ -1,30 +1,43 @@
-package com.example.levelup.uiscreens
+package com.example.levelup.ui.screens
 
-import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performScrollToNode
-import com.example.levelup.ui.screens.HomeScreen
+import com.example.levelup.MainActivity
 import org.junit.Rule
 import org.junit.Test
 
 class HomeScreenFooterChipsVisibleTest {
+
     @get:Rule
-    val compose = createAndroidComposeRule<ComponentActivity>()
+    val composeRule = createAndroidComposeRule<MainActivity>()
 
     @Test
     fun footer_chips_labels_visible_after_scroll() {
-        compose.setContent { HomeScreen(paddingValues = PaddingValues(), onNavigateToProducts = {}) }
 
-        compose.onNodeWithTag("home_list").performScrollToNode(hasText("PayPal"))
-        compose.onNodeWithText("PayPal").assertIsDisplayed()
+        // 1️⃣ Espera a que se cargue HomeScreen
+        composeRule.waitUntil(timeoutMillis = 8000) {
+            composeRule.onAllNodesWithText("Equipamiento. Poder. Estilo.").fetchSemanticsNodes().isNotEmpty()
+        }
 
-        compose.onNodeWithTag("home_list").performScrollToNode(hasText("Visa"))
-        compose.onNodeWithText("Visa").assertIsDisplayed()
+        // 2️⃣ Scroll dentro del LazyColumn
+        composeRule
+            .onNodeWithTag("home_list")
+            .performScrollToNode(hasTestTag("footer_chips"))
+
+        // 3️⃣ Footer existe
+        composeRule
+            .onNodeWithTag("footer_chips")
+            .assertExists("Footer no encontrado en HomeScreen")
+            .assertIsDisplayed()
+
+        // 4️⃣ Verificar chips de pago
+        val labels = listOf("PayPal", "Visa", "Mastercard", "Apple Pay", "Google Pay")
+
+        labels.forEach { label ->
+            composeRule
+                .onNodeWithText(label, substring = false)
+                .assertExists("Chip '$label' no existe")
+                .assertIsDisplayed()
+        }
     }
 }
-

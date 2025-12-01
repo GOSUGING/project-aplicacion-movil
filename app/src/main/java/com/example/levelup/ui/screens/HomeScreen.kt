@@ -268,9 +268,12 @@ private fun FooterSection() {
 
         Spacer(Modifier.height(12.dp))
 
+        // ⬇️ ESTA ES LA TAG QUE EL TEST NECESITA
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.horizontalScroll(rememberScrollState()).testTag("footer_chips")
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState())
+                .testTag("footer_chips")   // ⬅️ NECESARIA PARA TESTEAR
         ) {
             Chip("PayPal")
             Chip("Visa")
