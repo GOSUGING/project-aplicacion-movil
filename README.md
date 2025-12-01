@@ -87,7 +87,7 @@ Construida con **Kotlin + Jetpack Compose**, estilo **cyberpunk**, e integrada a
 - **Coroutines**
 
 ### ☁️ Backend (AWS)
-- **EC2
+- **EC2**
 - **S3 (Imágenes)**
 
 ---
