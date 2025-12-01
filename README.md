@@ -139,8 +139,8 @@ const val PRODUCTS_BASE_URL = "http://56.228.34.53:8085/api/v1/products"
 ---
 
 ## 👨‍💻 Autor
-**CHAPSUI / Level-Up Gamer**  
-Estudiante de Programación — Chile 🇨🇱  
+**Aron Suy, Bruno Canales, Juan Pablo Veliz/ Level-Up Gamer**  
+Estudiantes de Programación — Chile 🇨🇱  
 
 ---
 
